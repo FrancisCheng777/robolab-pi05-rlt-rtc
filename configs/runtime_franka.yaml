@@ -30,16 +30,19 @@ franka:
       wrist_serial: "262622272972"
       wrist_model: D405
 training:
+  # Scalar defaults from pinned RLinf realworld RLT; see docs/RLINF_PARAMETER_AUDIT.md.
   reward_source: manual_terminal
   gamma_per_tick: 0.99
   replay_capacity: 10000
-  batch_size: 32
-  actor_lr: 0.0001
+  batch_size: 256
+  actor_lr: 0.0003
   critic_lr: 0.0003
   lambda_q: 0.1
-  lambda_bc: 1.0
-  reference_dropout: 0.1
+  lambda_bc: 5.0
+  reference_dropout: 0.5
   polyak_tau: 0.005
+  actor_clip_grad: 10.0
+  critic_clip_grad: 10.0
   reward_scheme: rlt_binary
   exploration_std: 0.002  # RLinf RLT: Gaussian logits noise before tanh; not radians
 session:

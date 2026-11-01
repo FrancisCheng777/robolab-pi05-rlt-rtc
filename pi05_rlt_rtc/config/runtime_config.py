@@ -8,6 +8,7 @@ from typing import Any
 
 from pi05_rlt_rtc.contracts.errors import ConfigError, MissingAssetError
 from pi05_rlt_rtc.contracts.spaces import HorizonContract
+from pi05_rlt_rtc.learning.defaults import stage2_settings
 
 
 @dataclasses.dataclass(frozen=True)
@@ -105,6 +106,7 @@ def load_runtime_config(path: str | Path) -> RuntimeConfig:
                     'max_approach_ticks','max_critical_ticks'):
             if type(raw['session'].get(key)) is not int or raw['session'][key] <= 0:
                 raise ConfigError(f'session.{key} must be a positive integer')
+    stage2_settings(raw.get("training", {}))
     gamma = raw.get("training", {}).get("gamma_per_tick", .99)
     if not isinstance(gamma, (int, float)) or not math.isfinite(gamma) or not 0 < gamma <= 1:
         raise ConfigError("training.gamma_per_tick must be in (0,1]")
