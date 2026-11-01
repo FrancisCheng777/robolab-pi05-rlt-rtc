@@ -8,7 +8,7 @@ launched the **mock-only** C++ binary on temporary Unix sockets.
 
 | Check | Observed result |
 |---|---|
-| Main Python regression suite | 189 passed, 19 skipped (35.09 s) |
+| Main Python regression suite | 189 passed, 19 skipped (32.83 s in the new CUDA runtime; also passed in the CPU validation environment) |
 | Stage-1 v2 synthetic data/config tests | 5 passed, Python 3.12 / isolated LeRobot environment |
 | Real upstream tiny random numerical layers | 4 passed on CPU: model/RLT gradients, inference, RTC modes, tokenizer agreement |
 | Real v2 dataset, read-only load | 336 contiguous windows, action `[10,32]`, state `[32]`, image masks `[true,false,false]` |
@@ -31,6 +31,11 @@ production z dimension 2048 completed two BC updates and two RL updates on
 explicitly mock replay. This is a numerical integration test, not full-model
 memory/latency acceptance. Machine-readable output is in
 [CUDA validation](../provenance/cuda_validation.json).
+
+The documented `scripts/setup_runtime.sh` completed in a new environment
+without modifying the parent OpenPI environment. Production RLinf `get_model`
+and the registered Panda dataconfig import successfully without loading model
+weights or opening devices; the CLI session dry run also passed.
 
 The actual OpenPI vs Stage-1 transform audit also passed 32 synthetic samples:
 state/action max absolute error 0, identical tokens, masks and images. It used
