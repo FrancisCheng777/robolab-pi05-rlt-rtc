@@ -8,27 +8,25 @@
 
 沿用 `heinrich:/home/heinrich/pi05_plug_demo/` 的 GELLO/HDF5/LeRobot v3 数采链路。训练根目录包含 `train/`、`validation/`、`manifest.json`、`norm_stats.json`。按 session 划分；统计量仅来自 train。使用本项目契约，不能混入旧 DROID demo 或其他动作缩放的数据。
 
-在已安装匹配 RLinf/OpenPI/PyTorch/LeRobot v3 依赖的训练环境中：
+当前唯一生产配置为 `stage1_integration/configs/stage1_realworld.yaml`，默认四卡 FULL_SHARD、FP32 参数与 BF16 autocast，启用非重入 gradient checkpointing。全局 batch 64、LR 1e-5、warmup 1000、cosine 20000 步；首轮最多 8000 步。旧 `stage1_panda.yaml` 已归档，不再从外部 RLinf runner 启动。
 
 ```bash
-python -m pip install -e '.[runtime]'
-export RLINF_ROOT=/absolute/path/to/isolated/RLinf
-export PI05_DATASET_ROOT=/absolute/path/to/export
-export PI05_BASE_CHECKPOINT=/absolute/path/to/pi05_base
-bash scripts/start_stage1.sh
+bash stage1_integration/scripts/setup_stage1.sh
+export PI05_DATASET=/absolute/path/to/export
+export PI05_BASE_MODEL=/absolute/path/to/pi05_base
+export PI05_RUN_NAME=plug_realworld_001
+bash scripts/start_stage1_4xa800.sh inspect
+bash scripts/start_stage1_4xa800.sh preflight
+# 完整模型 smoke/save/resume 和持久存储验收后才运行 train。
 ```
 
-RLinf 固定提交为 `c70606f08cdca259b8dec03d4430926b5b8fac9d`。脚本只在所指定的隔离 checkout 加入两处显式注册：独立模型数据配置和真实 LeRobot loader；不修改全局 site-packages，不重写模型骨干。预先存在的其他源码修改会被拒绝，不能与另一份正在改动的训练副本直接混用。
-
-`configs/stage1_panda.yaml` 保留 π0.5 + RLT 全量训练，使用 FULL_SHARD、micro-batch 1。它不等于两张 A800 上的显存验收；固定上游的 SFT 会内部关闭 gradient checkpointing，因此本模板没有把该开关冒充为已经生效。另行准备的分片/checkpointing 优化需要合并审核后使用。
-
-模型 profile：`pi05_rlt_panda_robotiq_joint`。loader 校验真实数据标志、动作契约、15 Hz、train-only norm stats 哈希，使用真实 `source_time`，丢弃跨 episode、时间不连续、干预和不足 H 的窗口。不会把末尾关节增量重复成十步动作。两个真实视角必须存在，第三视角仅作为带 false mask 的模型占位。
+只有一个 wrist 视角映射到 `base_0_rgb`，mask 为 `[true,false,false]`；9D 状态/8D 动作、0.05 v2 编码、10 帧窗口。详细启动、恢复、评估与存储说明见 [四卡训练说明](STAGE1_4XA800.md)。loader 丢弃跨 episode、时间不连续、干预和不足 H 的窗口，统计量仅从 train 计算。
 
 Stage-1 输出须含训练后的 `rlt_module.*`，部署使用 `full_weights.pt` 与对应的同一份 norm stats。普通 π0.5 基础权重或原有 `pi05_droid` 服务不能代替它。
 
 ## 2. 真机配置与 bridge
 
-在 4090 的项目副本安装 `.[runtime,cameras]`。Kinect 另需本机 libfreenect2/pylibfreenect2，D405 需 pyrealsense2。C++ 需要与 Panda FCI 匹配的 libfranka 和 libmodbus。
+在 4090 的项目副本安装 `.[runtime,cameras]`。单腕部 D405 需 pyrealsense2。C++ 需要与 Panda FCI 匹配的 libfranka 和 libmodbus。
 
 填写 `configs/franka_bridge_panda.example.json` 的工具质量、重心、惯量、Robotiq 串口路径、实测全开/全闭 gPO 端点，核验限速/阻抗/碰撞阈值后设置 `hardware_verified=true`。Robotiq speed/force 使用 **1–255 整数寄存器值**。新 bridge 直接连接 Robotiq Modbus，绝不调用 Franka Hand。
 

@@ -8,9 +8,9 @@ from pathlib import Path
 import torch
 
 
-def evaluate_batches(model, batches, *, max_batches, seed=0):
+def evaluate_batches(model, batches, *, max_batches=None, seed=0):
     from rlinf.models.embodiment.openpi.modules.model import preprocess_observation
-    if max_batches <= 0:
+    if max_batches is not None and max_batches <= 0:
         raise ValueError('max_batches must be positive')
     model.eval().requires_grad_(False)
     total_elements = env_elements = examples = count = 0
@@ -36,7 +36,7 @@ def evaluate_batches(model, batches, *, max_batches, seed=0):
             loss_sum += per_element.double().sum().item(); env_sum += physical.double().sum().item()
             rlt_sum += rlt_loss.item() * n
             count += 1
-            if count >= max_batches:
+            if max_batches is not None and count >= max_batches:
                 break
     if not examples:
         raise ValueError('held-out dataset has no complete windows')
@@ -50,10 +50,10 @@ def main(argv=None):
     parser.add_argument('--dataset-root', required=True)
     parser.add_argument('--out', required=True)
     parser.add_argument('--batch-size', type=int, default=1)
-    parser.add_argument('--max-batches', type=int, default=100)
+    parser.add_argument('--max-batches', type=int, default=None, help='Default: all held-out windows; set only for a limited diagnostic')
     parser.add_argument('--seed', type=int, default=0)
     args = parser.parse_args(argv)
-    if args.batch_size <= 0 or args.max_batches <= 0:
+    if args.batch_size <= 0 or (args.max_batches is not None and args.max_batches <= 0):
         parser.error('batch-size and max-batches must be positive')
     from pi05_rlt_rtc.config.runtime_config import load_runtime_config
     from pi05_rlt_rtc.deployment.assets import sha256, validate_assets
@@ -82,7 +82,7 @@ def main(argv=None):
     report = evaluate_batches(planner.service.model, batches, max_batches=args.max_batches, seed=args.seed)
     report.update(metadata)
     report.update(split='validation', seed=args.seed, dataset_manifest_sha256=sha256(dataset_root / 'manifest.json'),
-                  available_windows=len(ds), scope='held-out offline losses; not task success rate',
+                  available_windows=len(ds), complete_validation=report['examples'] == len(ds), scope='held-out offline losses; not task success rate',
                   robot_commands_sent=0, hardware_validated=False)
     target = Path(args.out); target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(report, indent=2, allow_nan=False) + '\n')

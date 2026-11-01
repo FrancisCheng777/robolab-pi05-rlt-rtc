@@ -1,5 +1,55 @@
 # Validation — 2026-11-01
 
+
+## Current four-card preparation (2026-11-01)
+
+Canonical Stage-1 config is now `stage1_realworld.yaml`: default world size 4,
+global batch 64, micro-batch 16, LR 1e-5, warmup 1000, cosine 20000, initial budget 8000.
+Mac regression: **214 passed, 21 skipped** (8.46 s), including topology aliases,
+automatic placement, accumulation divisibility, exact-resume recipe checks and
+full held-out evaluation by default. The two pre-existing untracked duplicate
+Python files were excluded; all tracked main tests were included.
+
+AutoDL pinned environment: Python 3.12, torch 2.7.1+cu126; `pip check` and
+real worker import passed. Targeted config/data/held-out tests: **22 passed,
+2 fixture-dependent cases deselected**. Four-rank CPU FULL_SHARD regression
+matched the unsharded gradient reference and restored model/Adam states exactly.
+
+Full production architecture (4,100,198,160 parameters), using downloaded and
+SHA-256-verified `lerobot/pi05_base`, passed CUDA synthetic forward/backward,
+finite/nonzero gradients in all six audited branches, save, and resume:
+
+- micro-batch 1: 3 optimizer steps, saved step 3, restored through step 4;
+- selected micro-batch 16: saved step 2, restored through step 3 on all four ranks;
+- global batch 64, official real-world LR/schedule, FP32 storage/BF16 autocast;
+- actual complete checkpoint about **65.625 GB / 61.118 GiB**;
+- three-step throughput probes: micro 4 ~16 s/update, micro 8 ~9.2 s/update,
+  micro 16 ~5.5 s/update after initial startup;
+- micro 16 maximum over ranks: 22.041 GiB peak allocated, 34.281 GiB reserved.
+
+These are **synthetic engineering tests**, not real-data convergence or robot
+success measurements. Original base weights were not overwritten. Formal runs
+must restart from the base; synthetic checkpoints cannot be resumed as real data.
+Three full temporary test checkpoints were subsequently removed at the user's
+request, freeing 183.355 GiB of tmpfs. Before deletion, 48 small test artifacts
+(logs, diagnostics, resolved configs and checkpoint metadata) were copied and
+SHA-256 verified under the cloud data disk's
+`/root/autodl-tmp/preparation/synthetic-validation-records-20261101` directory.
+The [cleanup manifest](../reports/autodl_synthetic_cleanup_20261101.json) records
+the exact removed paths and retained artifacts. Original test reports remain.
+Observed container peak during validation was about 309.6 GiB, within its
+480 GiB quota; the 240 GiB tmpfs shares that quota and is not durable.
+The A800-region 200 GB fs is initialized and empty, but not mounted in this running
+instance. Persistent storage remains the launch blocker; no real training,
+instance restart, or robot operation occurred. A protected host-specific launcher
+is prepared at `/root/autodl-tmp/preparation/start-real-stage1.sh`; it requires
+reviewed data, mounted fs and free space, and initially stops at 2000 updates.
+
+Evidence: [full-model validation](../reports/autodl_full_model_validation_20261101.json)
+and [micro-batch measurements](../reports/autodl_microbatch_benchmarks_20261101.json).
+
+## Earlier runtime and data validation
+
 Tests ran on the existing local RTX4090 workstation, in a new
 `robolab-pi05-rlt-rtc` directory. No robot, gripper or camera device was opened.
 The real C++ backend was compiled against installed libfranka 0.9.0, but only

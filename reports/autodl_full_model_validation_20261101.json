@@ -1,0 +1,1110 @@
+{
+  "kind": "synthetic_full_model_engineering_validation",
+  "formal_training": false,
+  "base_repository": "lerobot/pi05_base",
+  "base_revision": "22c30e5b34f9e7ab738b1b34fc2fc5ecfe2d28f0",
+  "base_sha256_verified_during_download": "0eb11ca9587678c1d2ef8cf32807c29f8ce53a2bfdfc1aa4a4c96f16fca59b0f",
+  "torch": "2.7.1+cu126",
+  "world_size": 4,
+  "global_batch_size": 64,
+  "micro_batch_size": 1,
+  "smoke_completed": true,
+  "resume_completed": true,
+  "training_seconds_per_step": [
+    58.2,
+    57.9,
+    57.8,
+    57.8,
+    59.1,
+    59.1
+  ],
+  "checkpoints": {
+    "global_step_4": {
+      "bytes": 65625135283,
+      "metadata": {
+        "action_contract_id": "panda_delta_q0.05_robotiq_width0.085_v2",
+        "synthetic": true,
+        "upstream_commit": "c70606f08cdca259b8dec03d4430926b5b8fac9d",
+        "patched_files": {
+          "rlinf/config.py": "9df8d6a5f5089b1fa01e005fa9a2dec9979fb119ecdf567e70d287713904641a",
+          "rlinf/models/embodiment/openpi/pi0.py": "7f4da5b6e1d78cd47f47ab1db7ca93f89a575c47729a6f83f22284ec998e0660",
+          "rlinf/models/embodiment/openpi/modules/siglip.py": "52b8e683b7988c7e9822077546123312be28caa65df27903551ee8dc0365b103",
+          "rlinf/models/embodiment/modules/rlt_token_transformer.py": "6cdaf5b21c479936d6e5bf04cc954f1fa64d6c21bd58f0eb3fd509b4a073f5be"
+        },
+        "normalization": "quantile_q01_q99_then_pad",
+        "tokenize_state_before_padding": true,
+        "camera_views": [
+          "wrist"
+        ],
+        "policy_image_mapping": {
+          "base_0_rgb": "wrist"
+        },
+        "tokenizer_sha256": "8986bb4f423f07f8c7f70d0dbe3526fb2316056c17bae71b1ea975e77a168fc6",
+        "window_policy": {
+          "id": "complete_contiguous_no_intervention_v1",
+          "control_hz": 15,
+          "tail_padding": false,
+          "cross_episode": false,
+          "max_interval_error_fraction": 0.5,
+          "max_grid_error_frames": 1.0,
+          "exclude_intervention": true,
+          "timestamp_column": "source_time"
+        },
+        "parameters": 4100198160,
+        "world_size": 4,
+        "step": 4
+      }
+    },
+    "global_step_3": {
+      "bytes": 65625135224,
+      "metadata": {
+        "action_contract_id": "panda_delta_q0.05_robotiq_width0.085_v2",
+        "synthetic": true,
+        "upstream_commit": "c70606f08cdca259b8dec03d4430926b5b8fac9d",
+        "patched_files": {
+          "rlinf/config.py": "9df8d6a5f5089b1fa01e005fa9a2dec9979fb119ecdf567e70d287713904641a",
+          "rlinf/models/embodiment/openpi/pi0.py": "7f4da5b6e1d78cd47f47ab1db7ca93f89a575c47729a6f83f22284ec998e0660",
+          "rlinf/models/embodiment/openpi/modules/siglip.py": "52b8e683b7988c7e9822077546123312be28caa65df27903551ee8dc0365b103",
+          "rlinf/models/embodiment/modules/rlt_token_transformer.py": "6cdaf5b21c479936d6e5bf04cc954f1fa64d6c21bd58f0eb3fd509b4a073f5be"
+        },
+        "normalization": "quantile_q01_q99_then_pad",
+        "tokenize_state_before_padding": true,
+        "camera_views": [
+          "wrist"
+        ],
+        "policy_image_mapping": {
+          "base_0_rgb": "wrist"
+        },
+        "tokenizer_sha256": "8986bb4f423f07f8c7f70d0dbe3526fb2316056c17bae71b1ea975e77a168fc6",
+        "window_policy": {
+          "id": "complete_contiguous_no_intervention_v1",
+          "control_hz": 15,
+          "tail_padding": false,
+          "cross_episode": false,
+          "max_interval_error_fraction": 0.5,
+          "max_grid_error_frames": 1.0,
+          "exclude_intervention": true,
+          "timestamp_column": "source_time"
+        },
+        "parameters": 4100198160,
+        "world_size": 4,
+        "step": 3
+      }
+    }
+  },
+  "diagnostics": {
+    "diagnostics_rank_0": [
+      {
+        "event": "initialization",
+        "rank": 0,
+        "step": 0,
+        "parameters": 4100198160,
+        "parameter_groups": {
+          "language": 2508531712,
+          "action_expert": 427932672,
+          "vision": 414803696,
+          "action_projection": 2165792,
+          "rlt_encoder": 371286016,
+          "rlt_decoder": 375478272
+        },
+        "fsdp_wrappers": 133,
+        "precision": "FP32 weights/gradients/Adam, BF16 autocast"
+      },
+      {
+        "event": "gradient_audit",
+        "rank": 0,
+        "step": 0,
+        "norms": {
+          "vision": 0.22042799880170225,
+          "language": 0.5668575280947651,
+          "action_expert": 0.32953476719986213,
+          "action_projection": 0.27404381968482094,
+          "rlt_encoder": 0.02062495504891089,
+          "rlt_decoder": 3.6965491730436333
+        },
+        "gradient_elements": {
+          "vision": 414803696.0,
+          "language": 2508527616.0,
+          "action_expert": 427932672.0,
+          "action_projection": 2165792.0,
+          "rlt_encoder": 371286016.0,
+          "rlt_decoder": 375478272.0
+        }
+      },
+      {
+        "event": "optimizer_step",
+        "rank": 0,
+        "step": 0,
+        "peak_allocated_gib": 21.465170860290527,
+        "peak_reserved_gib": 28.66015625,
+        "grad_norm": 3.7707440853118896,
+        "learning_rate": 9.99999993922529e-09,
+        "loss": 2.915353298187256,
+        "rlt_loss": 2.776374578475952,
+        "vla_loss": 0.1389790028333664
+      },
+      {
+        "event": "gradient_audit",
+        "rank": 0,
+        "step": 1,
+        "norms": {
+          "vision": 0.15111249708872931,
+          "language": 0.45996065141489506,
+          "action_expert": 0.4641867450988982,
+          "action_projection": 0.38777909406165506,
+          "rlt_encoder": 0.020699006045053373,
+          "rlt_decoder": 3.7064346812456557
+        },
+        "gradient_elements": {
+          "vision": 414803696.0,
+          "language": 2508527616.0,
+          "action_expert": 427932672.0,
+          "action_projection": 2165792.0,
+          "rlt_encoder": 371286016.0,
+          "rlt_decoder": 375478272.0
+        }
+      },
+      {
+        "event": "optimizer_step",
+        "rank": 0,
+        "step": 1,
+        "peak_allocated_gib": 21.471700191497803,
+        "peak_reserved_gib": 28.66015625,
+        "grad_norm": 3.7865984439849854,
+        "learning_rate": 1.999999987845058e-08,
+        "loss": 2.933734178543091,
+        "rlt_loss": 2.778520345687866,
+        "vla_loss": 0.15521392226219177
+      },
+      {
+        "event": "optimizer_step",
+        "rank": 0,
+        "step": 2,
+        "peak_allocated_gib": 21.471700191497803,
+        "peak_reserved_gib": 28.66015625,
+        "grad_norm": 3.7498316764831543,
+        "learning_rate": 2.999999892949745e-08,
+        "loss": 2.919703483581543,
+        "rlt_loss": 2.770033836364746,
+        "vla_loss": 0.14966951310634613
+      },
+      {
+        "event": "initialization",
+        "rank": 0,
+        "step": 0,
+        "parameters": 4100198160,
+        "parameter_groups": {
+          "language": 2508531712,
+          "action_expert": 427932672,
+          "vision": 414803696,
+          "action_projection": 2165792,
+          "rlt_encoder": 371286016,
+          "rlt_decoder": 375478272
+        },
+        "fsdp_wrappers": 133,
+        "precision": "FP32 weights/gradients/Adam, BF16 autocast"
+      },
+      {
+        "event": "optimizer_step",
+        "rank": 0,
+        "step": 3,
+        "peak_allocated_gib": 21.458259105682373,
+        "peak_reserved_gib": 35.576171875,
+        "grad_norm": 3.7450335025787354,
+        "learning_rate": 3.999999975690116e-08,
+        "loss": 2.8966445922851562,
+        "rlt_loss": 2.762531280517578,
+        "vla_loss": 0.13411320745944977
+      }
+    ],
+    "diagnostics_rank_1": [
+      {
+        "event": "initialization",
+        "rank": 1,
+        "step": 0,
+        "parameters": 4100198160,
+        "parameter_groups": {
+          "language": 2508531712,
+          "action_expert": 427932672,
+          "vision": 414803696,
+          "action_projection": 2165792,
+          "rlt_encoder": 371286016,
+          "rlt_decoder": 375478272
+        },
+        "fsdp_wrappers": 133,
+        "precision": "FP32 weights/gradients/Adam, BF16 autocast"
+      },
+      {
+        "event": "gradient_audit",
+        "rank": 1,
+        "step": 0,
+        "norms": {
+          "vision": 0.22042799880170225,
+          "language": 0.5668575280947651,
+          "action_expert": 0.32953476719986213,
+          "action_projection": 0.27404381968482094,
+          "rlt_encoder": 0.02062495504891089,
+          "rlt_decoder": 3.6965491730436333
+        },
+        "gradient_elements": {
+          "vision": 414803696.0,
+          "language": 2508527616.0,
+          "action_expert": 427932672.0,
+          "action_projection": 2165792.0,
+          "rlt_encoder": 371286016.0,
+          "rlt_decoder": 375478272.0
+        }
+      },
+      {
+        "event": "optimizer_step",
+        "rank": 1,
+        "step": 0,
+        "peak_allocated_gib": 21.42231273651123,
+        "peak_reserved_gib": 32.79296875,
+        "grad_norm": 3.7707440853118896,
+        "learning_rate": 9.99999993922529e-09,
+        "loss": 2.915353298187256,
+        "rlt_loss": 2.776374578475952,
+        "vla_loss": 0.1389790028333664
+      },
+      {
+        "event": "gradient_audit",
+        "rank": 1,
+        "step": 1,
+        "norms": {
+          "vision": 0.15111249708872931,
+          "language": 0.45996065141489506,
+          "action_expert": 0.4641867450988982,
+          "action_projection": 0.38777909406165506,
+          "rlt_encoder": 0.020699006045053373,
+          "rlt_decoder": 3.7064346812456557
+        },
+        "gradient_elements": {
+          "vision": 414803696.0,
+          "language": 2508527616.0,
+          "action_expert": 427932672.0,
+          "action_projection": 2165792.0,
+          "rlt_encoder": 371286016.0,
+          "rlt_decoder": 375478272.0
+        }
+      },
+      {
+        "event": "optimizer_step",
+        "rank": 1,
+        "step": 1,
+        "peak_allocated_gib": 21.428842067718506,
+        "peak_reserved_gib": 32.79296875,
+        "grad_norm": 3.7865984439849854,
+        "learning_rate": 1.999999987845058e-08,
+        "loss": 2.933734178543091,
+        "rlt_loss": 2.778520345687866,
+        "vla_loss": 0.15521392226219177
+      },
+      {
+        "event": "optimizer_step",
+        "rank": 1,
+        "step": 2,
+        "peak_allocated_gib": 21.428842067718506,
+        "peak_reserved_gib": 32.79296875,
+        "grad_norm": 3.7498316764831543,
+        "learning_rate": 2.999999892949745e-08,
+        "loss": 2.919703483581543,
+        "rlt_loss": 2.770033836364746,
+        "vla_loss": 0.14966951310634613
+      },
+      {
+        "event": "initialization",
+        "rank": 1,
+        "step": 0,
+        "parameters": 4100198160,
+        "parameter_groups": {
+          "language": 2508531712,
+          "action_expert": 427932672,
+          "vision": 414803696,
+          "action_projection": 2165792,
+          "rlt_encoder": 371286016,
+          "rlt_decoder": 375478272
+        },
+        "fsdp_wrappers": 133,
+        "precision": "FP32 weights/gradients/Adam, BF16 autocast"
+      },
+      {
+        "event": "optimizer_step",
+        "rank": 1,
+        "step": 3,
+        "peak_allocated_gib": 21.42319917678833,
+        "peak_reserved_gib": 38.70703125,
+        "grad_norm": 3.7450335025787354,
+        "learning_rate": 3.999999975690116e-08,
+        "loss": 2.8966445922851562,
+        "rlt_loss": 2.762531280517578,
+        "vla_loss": 0.13411320745944977
+      }
+    ],
+    "diagnostics_rank_3": [
+      {
+        "event": "initialization",
+        "rank": 3,
+        "step": 0,
+        "parameters": 4100198160,
+        "parameter_groups": {
+          "language": 2508531712,
+          "action_expert": 427932672,
+          "vision": 414803696,
+          "action_projection": 2165792,
+          "rlt_encoder": 371286016,
+          "rlt_decoder": 375478272
+        },
+        "fsdp_wrappers": 133,
+        "precision": "FP32 weights/gradients/Adam, BF16 autocast"
+      },
+      {
+        "event": "gradient_audit",
+        "rank": 3,
+        "step": 0,
+        "norms": {
+          "vision": 0.22042799880170225,
+          "language": 0.5668575280947651,
+          "action_expert": 0.32953476719986213,
+          "action_projection": 0.27404381968482094,
+          "rlt_encoder": 0.02062495504891089,
+          "rlt_decoder": 3.6965491730436333
+        },
+        "gradient_elements": {
+          "vision": 414803696.0,
+          "language": 2508527616.0,
+          "action_expert": 427932672.0,
+          "action_projection": 2165792.0,
+          "rlt_encoder": 371286016.0,
+          "rlt_decoder": 375478272.0
+        }
+      },
+      {
+        "event": "optimizer_step",
+        "rank": 3,
+        "step": 0,
+        "peak_allocated_gib": 21.424129962921143,
+        "peak_reserved_gib": 30.548828125,
+        "grad_norm": 3.7707440853118896,
+        "learning_rate": 9.99999993922529e-09,
+        "loss": 2.915353298187256,
+        "rlt_loss": 2.776374578475952,
+        "vla_loss": 0.1389790028333664
+      },
+      {
+        "event": "gradient_audit",
+        "rank": 3,
+        "step": 1,
+        "norms": {
+          "vision": 0.15111249708872931,
+          "language": 0.45996065141489506,
+          "action_expert": 0.4641867450988982,
+          "action_projection": 0.38777909406165506,
+          "rlt_encoder": 0.020699006045053373,
+          "rlt_decoder": 3.7064346812456557
+        },
+        "gradient_elements": {
+          "vision": 414803696.0,
+          "language": 2508527616.0,
+          "action_expert": 427932672.0,
+          "action_projection": 2165792.0,
+          "rlt_encoder": 371286016.0,
+          "rlt_decoder": 375478272.0
+        }
+      },
+      {
+        "event": "optimizer_step",
+        "rank": 3,
+        "step": 1,
+        "peak_allocated_gib": 21.430659294128418,
+        "peak_reserved_gib": 30.548828125,
+        "grad_norm": 3.7865984439849854,
+        "learning_rate": 1.999999987845058e-08,
+        "loss": 2.933734178543091,
+        "rlt_loss": 2.778520345687866,
+        "vla_loss": 0.15521392226219177
+      },
+      {
+        "event": "optimizer_step",
+        "rank": 3,
+        "step": 2,
+        "peak_allocated_gib": 21.430659294128418,
+        "peak_reserved_gib": 30.548828125,
+        "grad_norm": 3.7498316764831543,
+        "learning_rate": 2.999999892949745e-08,
+        "loss": 2.919703483581543,
+        "rlt_loss": 2.770033836364746,
+        "vla_loss": 0.14966951310634613
+      },
+      {
+        "event": "initialization",
+        "rank": 3,
+        "step": 0,
+        "parameters": 4100198160,
+        "parameter_groups": {
+          "language": 2508531712,
+          "action_expert": 427932672,
+          "vision": 414803696,
+          "action_projection": 2165792,
+          "rlt_encoder": 371286016,
+          "rlt_decoder": 375478272
+        },
+        "fsdp_wrappers": 133,
+        "precision": "FP32 weights/gradients/Adam, BF16 autocast"
+      },
+      {
+        "event": "optimizer_step",
+        "rank": 3,
+        "step": 3,
+        "peak_allocated_gib": 21.415778636932373,
+        "peak_reserved_gib": 36.4375,
+        "grad_norm": 3.7450335025787354,
+        "learning_rate": 3.999999975690116e-08,
+        "loss": 2.8966445922851562,
+        "rlt_loss": 2.762531280517578,
+        "vla_loss": 0.13411320745944977
+      }
+    ],
+    "diagnostics_rank_2": [
+      {
+        "event": "initialization",
+        "rank": 2,
+        "step": 0,
+        "parameters": 4100198160,
+        "parameter_groups": {
+          "language": 2508531712,
+          "action_expert": 427932672,
+          "vision": 414803696,
+          "action_projection": 2165792,
+          "rlt_encoder": 371286016,
+          "rlt_decoder": 375478272
+        },
+        "fsdp_wrappers": 133,
+        "precision": "FP32 weights/gradients/Adam, BF16 autocast"
+      },
+      {
+        "event": "gradient_audit",
+        "rank": 2,
+        "step": 0,
+        "norms": {
+          "vision": 0.22042799880170225,
+          "language": 0.5668575280947651,
+          "action_expert": 0.32953476719986213,
+          "action_projection": 0.27404381968482094,
+          "rlt_encoder": 0.02062495504891089,
+          "rlt_decoder": 3.6965491730436333
+        },
+        "gradient_elements": {
+          "vision": 414803696.0,
+          "language": 2508527616.0,
+          "action_expert": 427932672.0,
+          "action_projection": 2165792.0,
+          "rlt_encoder": 371286016.0,
+          "rlt_decoder": 375478272.0
+        }
+      },
+      {
+        "event": "optimizer_step",
+        "rank": 2,
+        "step": 0,
+        "peak_allocated_gib": 21.43807077407837,
+        "peak_reserved_gib": 31.705078125,
+        "grad_norm": 3.7707440853118896,
+        "learning_rate": 9.99999993922529e-09,
+        "loss": 2.915353298187256,
+        "rlt_loss": 2.776374578475952,
+        "vla_loss": 0.1389790028333664
+      },
+      {
+        "event": "gradient_audit",
+        "rank": 2,
+        "step": 1,
+        "norms": {
+          "vision": 0.15111249708872931,
+          "language": 0.45996065141489506,
+          "action_expert": 0.4641867450988982,
+          "action_projection": 0.38777909406165506,
+          "rlt_encoder": 0.020699006045053373,
+          "rlt_decoder": 3.7064346812456557
+        },
+        "gradient_elements": {
+          "vision": 414803696.0,
+          "language": 2508527616.0,
+          "action_expert": 427932672.0,
+          "action_projection": 2165792.0,
+          "rlt_encoder": 371286016.0,
+          "rlt_decoder": 375478272.0
+        }
+      },
+      {
+        "event": "optimizer_step",
+        "rank": 2,
+        "step": 1,
+        "peak_allocated_gib": 21.444600105285645,
+        "peak_reserved_gib": 31.705078125,
+        "grad_norm": 3.7865984439849854,
+        "learning_rate": 1.999999987845058e-08,
+        "loss": 2.933734178543091,
+        "rlt_loss": 2.778520345687866,
+        "vla_loss": 0.15521392226219177
+      },
+      {
+        "event": "optimizer_step",
+        "rank": 2,
+        "step": 2,
+        "peak_allocated_gib": 21.444600105285645,
+        "peak_reserved_gib": 31.705078125,
+        "grad_norm": 3.7498316764831543,
+        "learning_rate": 2.999999892949745e-08,
+        "loss": 2.919703483581543,
+        "rlt_loss": 2.770033836364746,
+        "vla_loss": 0.14966951310634613
+      },
+      {
+        "event": "initialization",
+        "rank": 2,
+        "step": 0,
+        "parameters": 4100198160,
+        "parameter_groups": {
+          "language": 2508531712,
+          "action_expert": 427932672,
+          "vision": 414803696,
+          "action_projection": 2165792,
+          "rlt_encoder": 371286016,
+          "rlt_decoder": 375478272
+        },
+        "fsdp_wrappers": 133,
+        "precision": "FP32 weights/gradients/Adam, BF16 autocast"
+      },
+      {
+        "event": "optimizer_step",
+        "rank": 2,
+        "step": 3,
+        "peak_allocated_gib": 21.444886684417725,
+        "peak_reserved_gib": 37.59375,
+        "grad_norm": 3.7450335025787354,
+        "learning_rate": 3.999999975690116e-08,
+        "loss": 2.8966445922851562,
+        "rlt_loss": 2.762531280517578,
+        "vla_loss": 0.13411320745944977
+      }
+    ]
+  },
+  "cpu_4rank_test": {
+    "world_size": 4,
+    "device": "cpu/gloo",
+    "fsdp_wrappers": 38,
+    "full_shard": true,
+    "accumulation_matches_reference": true,
+    "rlinf_dcp_save_restore": true,
+    "optimizer_restore": true,
+    "gpu_export_offload_tested": false,
+    "full_weights_strict_reload": true,
+    "bf16_autocast_backward": true,
+    "gpu_memory_measured": false
+  },
+  "cgroup_memory_limit_bytes": 515396075520,
+  "cgroup_peak_since_container_start_bytes": 332386123776,
+  "persistent_checkpoint_storage_ready": false,
+  "selected_profile": {
+    "micro_batch_size": 16,
+    "global_batch_size": 64,
+    "world_size": 4,
+    "save_completed": true,
+    "resume_completed": true,
+    "resume_from_step": 2,
+    "resumed_through_step": 3,
+    "checkpoint_bytes": 65625135617,
+    "checkpoint_metadata": {
+      "action_contract_id": "panda_delta_q0.05_robotiq_width0.085_v2",
+      "synthetic": true,
+      "upstream_commit": "c70606f08cdca259b8dec03d4430926b5b8fac9d",
+      "patched_files": {
+        "rlinf/config.py": "9df8d6a5f5089b1fa01e005fa9a2dec9979fb119ecdf567e70d287713904641a",
+        "rlinf/models/embodiment/openpi/pi0.py": "7f4da5b6e1d78cd47f47ab1db7ca93f89a575c47729a6f83f22284ec998e0660",
+        "rlinf/models/embodiment/openpi/modules/siglip.py": "52b8e683b7988c7e9822077546123312be28caa65df27903551ee8dc0365b103",
+        "rlinf/models/embodiment/modules/rlt_token_transformer.py": "6cdaf5b21c479936d6e5bf04cc954f1fa64d6c21bd58f0eb3fd509b4a073f5be"
+      },
+      "normalization": "quantile_q01_q99_then_pad",
+      "tokenize_state_before_padding": true,
+      "camera_views": [
+        "wrist"
+      ],
+      "policy_image_mapping": {
+        "base_0_rgb": "wrist"
+      },
+      "tokenizer_sha256": "8986bb4f423f07f8c7f70d0dbe3526fb2316056c17bae71b1ea975e77a168fc6",
+      "window_policy": {
+        "id": "complete_contiguous_no_intervention_v1",
+        "control_hz": 15,
+        "tail_padding": false,
+        "cross_episode": false,
+        "max_interval_error_fraction": 0.5,
+        "max_grid_error_frames": 1.0,
+        "exclude_intervention": true,
+        "timestamp_column": "source_time"
+      },
+      "parameters": 4100198160,
+      "world_size": 4,
+      "step": 2
+    },
+    "diagnostics": {
+      "diagnostics_rank_0": [
+        {
+          "event": "initialization",
+          "rank": 0,
+          "step": 0,
+          "parameters": 4100198160,
+          "parameter_groups": {
+            "language": 2508531712,
+            "action_expert": 427932672,
+            "vision": 414803696,
+            "action_projection": 2165792,
+            "rlt_encoder": 371286016,
+            "rlt_decoder": 375478272
+          },
+          "fsdp_wrappers": 133,
+          "precision": "FP32 weights/gradients/Adam, BF16 autocast"
+        },
+        {
+          "event": "gradient_audit",
+          "rank": 0,
+          "step": 0,
+          "norms": {
+            "vision": 0.23764273600070887,
+            "language": 0.5156622622279462,
+            "action_expert": 0.3179780538591996,
+            "action_projection": 0.2837157377372686,
+            "rlt_encoder": 0.02115908820572956,
+            "rlt_decoder": 3.702196005502998
+          },
+          "gradient_elements": {
+            "vision": 414803696.0,
+            "language": 2508527616.0,
+            "action_expert": 427932672.0,
+            "action_projection": 2165792.0,
+            "rlt_encoder": 371286016.0,
+            "rlt_decoder": 375478272.0
+          }
+        },
+        {
+          "event": "optimizer_step",
+          "rank": 0,
+          "step": 0,
+          "peak_allocated_gib": 22.034756183624268,
+          "peak_reserved_gib": 34.24609375,
+          "grad_norm": 3.7697067260742188,
+          "learning_rate": 9.99999993922529e-09,
+          "loss": 2.89443302154541,
+          "rlt_loss": 2.7821202278137207,
+          "vla_loss": 0.11231259256601334
+        },
+        {
+          "event": "gradient_audit",
+          "rank": 0,
+          "step": 1,
+          "norms": {
+            "vision": 0.18693321996973267,
+            "language": 0.653220174656423,
+            "action_expert": 0.2094480541512384,
+            "action_projection": 0.1761211854076693,
+            "rlt_encoder": 0.02123184437508552,
+            "rlt_decoder": 3.7156625090597823
+          },
+          "gradient_elements": {
+            "vision": 414803696.0,
+            "language": 2508527616.0,
+            "action_expert": 427932672.0,
+            "action_projection": 2165792.0,
+            "rlt_encoder": 371286016.0,
+            "rlt_decoder": 375478272.0
+          }
+        },
+        {
+          "event": "optimizer_step",
+          "rank": 0,
+          "step": 1,
+          "peak_allocated_gib": 22.040684700012207,
+          "peak_reserved_gib": 34.28125,
+          "grad_norm": 3.7872321605682373,
+          "learning_rate": 1.999999987845058e-08,
+          "loss": 2.9118144512176514,
+          "rlt_loss": 2.784917116165161,
+          "vla_loss": 0.1268974244594574
+        },
+        {
+          "event": "initialization",
+          "rank": 0,
+          "step": 0,
+          "parameters": 4100198160,
+          "parameter_groups": {
+            "language": 2508531712,
+            "action_expert": 427932672,
+            "vision": 414803696,
+            "action_projection": 2165792,
+            "rlt_encoder": 371286016,
+            "rlt_decoder": 375478272
+          },
+          "fsdp_wrappers": 133,
+          "precision": "FP32 weights/gradients/Adam, BF16 autocast"
+        },
+        {
+          "event": "optimizer_step",
+          "rank": 0,
+          "step": 2,
+          "peak_allocated_gib": 22.013629913330078,
+          "peak_reserved_gib": 34.91015625,
+          "grad_norm": 3.7697091102600098,
+          "learning_rate": 2.999999892949745e-08,
+          "loss": 2.9238758087158203,
+          "rlt_loss": 2.7761785984039307,
+          "vla_loss": 0.1476973295211792
+        }
+      ],
+      "diagnostics_rank_1": [
+        {
+          "event": "initialization",
+          "rank": 1,
+          "step": 0,
+          "parameters": 4100198160,
+          "parameter_groups": {
+            "language": 2508531712,
+            "action_expert": 427932672,
+            "vision": 414803696,
+            "action_projection": 2165792,
+            "rlt_encoder": 371286016,
+            "rlt_decoder": 375478272
+          },
+          "fsdp_wrappers": 133,
+          "precision": "FP32 weights/gradients/Adam, BF16 autocast"
+        },
+        {
+          "event": "gradient_audit",
+          "rank": 1,
+          "step": 0,
+          "norms": {
+            "vision": 0.23764273600070887,
+            "language": 0.5156622622279462,
+            "action_expert": 0.3179780538591996,
+            "action_projection": 0.2837157377372686,
+            "rlt_encoder": 0.02115908820572956,
+            "rlt_decoder": 3.702196005502998
+          },
+          "gradient_elements": {
+            "vision": 414803696.0,
+            "language": 2508527616.0,
+            "action_expert": 427932672.0,
+            "action_projection": 2165792.0,
+            "rlt_encoder": 371286016.0,
+            "rlt_decoder": 375478272.0
+          }
+        },
+        {
+          "event": "optimizer_step",
+          "rank": 1,
+          "step": 0,
+          "peak_allocated_gib": 21.991182804107666,
+          "peak_reserved_gib": 32.599609375,
+          "grad_norm": 3.7697067260742188,
+          "learning_rate": 9.99999993922529e-09,
+          "loss": 2.89443302154541,
+          "rlt_loss": 2.7821202278137207,
+          "vla_loss": 0.11231259256601334
+        },
+        {
+          "event": "gradient_audit",
+          "rank": 1,
+          "step": 1,
+          "norms": {
+            "vision": 0.18693321996973267,
+            "language": 0.653220174656423,
+            "action_expert": 0.2094480541512384,
+            "action_projection": 0.1761211854076693,
+            "rlt_encoder": 0.02123184437508552,
+            "rlt_decoder": 3.7156625090597823
+          },
+          "gradient_elements": {
+            "vision": 414803696.0,
+            "language": 2508527616.0,
+            "action_expert": 427932672.0,
+            "action_projection": 2165792.0,
+            "rlt_encoder": 371286016.0,
+            "rlt_decoder": 375478272.0
+          }
+        },
+        {
+          "event": "optimizer_step",
+          "rank": 1,
+          "step": 1,
+          "peak_allocated_gib": 21.997918605804443,
+          "peak_reserved_gib": 32.634765625,
+          "grad_norm": 3.7872321605682373,
+          "learning_rate": 1.999999987845058e-08,
+          "loss": 2.9118144512176514,
+          "rlt_loss": 2.784917116165161,
+          "vla_loss": 0.1268974244594574
+        },
+        {
+          "event": "initialization",
+          "rank": 1,
+          "step": 0,
+          "parameters": 4100198160,
+          "parameter_groups": {
+            "language": 2508531712,
+            "action_expert": 427932672,
+            "vision": 414803696,
+            "action_projection": 2165792,
+            "rlt_encoder": 371286016,
+            "rlt_decoder": 375478272
+          },
+          "fsdp_wrappers": 133,
+          "precision": "FP32 weights/gradients/Adam, BF16 autocast"
+        },
+        {
+          "event": "optimizer_step",
+          "rank": 1,
+          "step": 2,
+          "peak_allocated_gib": 21.978596687316895,
+          "peak_reserved_gib": 38.041015625,
+          "grad_norm": 3.7697091102600098,
+          "learning_rate": 2.999999892949745e-08,
+          "loss": 2.9238758087158203,
+          "rlt_loss": 2.7761785984039307,
+          "vla_loss": 0.1476973295211792
+        }
+      ],
+      "diagnostics_rank_2": [
+        {
+          "event": "initialization",
+          "rank": 2,
+          "step": 0,
+          "parameters": 4100198160,
+          "parameter_groups": {
+            "language": 2508531712,
+            "action_expert": 427932672,
+            "vision": 414803696,
+            "action_projection": 2165792,
+            "rlt_encoder": 371286016,
+            "rlt_decoder": 375478272
+          },
+          "fsdp_wrappers": 133,
+          "precision": "FP32 weights/gradients/Adam, BF16 autocast"
+        },
+        {
+          "event": "gradient_audit",
+          "rank": 2,
+          "step": 0,
+          "norms": {
+            "vision": 0.23764273600070887,
+            "language": 0.5156622622279462,
+            "action_expert": 0.3179780538591996,
+            "action_projection": 0.2837157377372686,
+            "rlt_encoder": 0.02115908820572956,
+            "rlt_decoder": 3.702196005502998
+          },
+          "gradient_elements": {
+            "vision": 414803696.0,
+            "language": 2508527616.0,
+            "action_expert": 427932672.0,
+            "action_projection": 2165792.0,
+            "rlt_encoder": 371286016.0,
+            "rlt_decoder": 375478272.0
+          }
+        },
+        {
+          "event": "optimizer_step",
+          "rank": 2,
+          "step": 0,
+          "peak_allocated_gib": 21.99325180053711,
+          "peak_reserved_gib": 32.697265625,
+          "grad_norm": 3.7697067260742188,
+          "learning_rate": 9.99999993922529e-09,
+          "loss": 2.89443302154541,
+          "rlt_loss": 2.7821202278137207,
+          "vla_loss": 0.11231259256601334
+        },
+        {
+          "event": "gradient_audit",
+          "rank": 2,
+          "step": 1,
+          "norms": {
+            "vision": 0.18693321996973267,
+            "language": 0.653220174656423,
+            "action_expert": 0.2094480541512384,
+            "action_projection": 0.1761211854076693,
+            "rlt_encoder": 0.02123184437508552,
+            "rlt_decoder": 3.7156625090597823
+          },
+          "gradient_elements": {
+            "vision": 414803696.0,
+            "language": 2508527616.0,
+            "action_expert": 427932672.0,
+            "action_projection": 2165792.0,
+            "rlt_encoder": 371286016.0,
+            "rlt_decoder": 375478272.0
+          }
+        },
+        {
+          "event": "optimizer_step",
+          "rank": 2,
+          "step": 1,
+          "peak_allocated_gib": 21.999987602233887,
+          "peak_reserved_gib": 32.732421875,
+          "grad_norm": 3.7872321605682373,
+          "learning_rate": 1.999999987845058e-08,
+          "loss": 2.9118144512176514,
+          "rlt_loss": 2.784917116165161,
+          "vla_loss": 0.1268974244594574
+        },
+        {
+          "event": "initialization",
+          "rank": 2,
+          "step": 0,
+          "parameters": 4100198160,
+          "parameter_groups": {
+            "language": 2508531712,
+            "action_expert": 427932672,
+            "vision": 414803696,
+            "action_projection": 2165792,
+            "rlt_encoder": 371286016,
+            "rlt_decoder": 375478272
+          },
+          "fsdp_wrappers": 133,
+          "precision": "FP32 weights/gradients/Adam, BF16 autocast"
+        },
+        {
+          "event": "optimizer_step",
+          "rank": 2,
+          "step": 2,
+          "peak_allocated_gib": 21.991799354553223,
+          "peak_reserved_gib": 36.927734375,
+          "grad_norm": 3.7697091102600098,
+          "learning_rate": 2.999999892949745e-08,
+          "loss": 2.9238758087158203,
+          "rlt_loss": 2.7761785984039307,
+          "vla_loss": 0.1476973295211792
+        }
+      ],
+      "diagnostics_rank_3": [
+        {
+          "event": "initialization",
+          "rank": 3,
+          "step": 0,
+          "parameters": 4100198160,
+          "parameter_groups": {
+            "language": 2508531712,
+            "action_expert": 427932672,
+            "vision": 414803696,
+            "action_projection": 2165792,
+            "rlt_encoder": 371286016,
+            "rlt_decoder": 375478272
+          },
+          "fsdp_wrappers": 133,
+          "precision": "FP32 weights/gradients/Adam, BF16 autocast"
+        },
+        {
+          "event": "gradient_audit",
+          "rank": 3,
+          "step": 0,
+          "norms": {
+            "vision": 0.23764273600070887,
+            "language": 0.5156622622279462,
+            "action_expert": 0.3179780538591996,
+            "action_projection": 0.2837157377372686,
+            "rlt_encoder": 0.02115908820572956,
+            "rlt_decoder": 3.702196005502998
+          },
+          "gradient_elements": {
+            "vision": 414803696.0,
+            "language": 2508527616.0,
+            "action_expert": 427932672.0,
+            "action_projection": 2165792.0,
+            "rlt_encoder": 371286016.0,
+            "rlt_decoder": 375478272.0
+          }
+        },
+        {
+          "event": "optimizer_step",
+          "rank": 3,
+          "step": 0,
+          "peak_allocated_gib": 21.987300395965576,
+          "peak_reserved_gib": 33.474609375,
+          "grad_norm": 3.7697067260742188,
+          "learning_rate": 9.99999993922529e-09,
+          "loss": 2.89443302154541,
+          "rlt_loss": 2.7821202278137207,
+          "vla_loss": 0.11231259256601334
+        },
+        {
+          "event": "gradient_audit",
+          "rank": 3,
+          "step": 1,
+          "norms": {
+            "vision": 0.18693321996973267,
+            "language": 0.653220174656423,
+            "action_expert": 0.2094480541512384,
+            "action_projection": 0.1761211854076693,
+            "rlt_encoder": 0.02123184437508552,
+            "rlt_decoder": 3.7156625090597823
+          },
+          "gradient_elements": {
+            "vision": 414803696.0,
+            "language": 2508527616.0,
+            "action_expert": 427932672.0,
+            "action_projection": 2165792.0,
+            "rlt_encoder": 371286016.0,
+            "rlt_decoder": 375478272.0
+          }
+        },
+        {
+          "event": "optimizer_step",
+          "rank": 3,
+          "step": 1,
+          "peak_allocated_gib": 21.994341373443604,
+          "peak_reserved_gib": 33.509765625,
+          "grad_norm": 3.7872321605682373,
+          "learning_rate": 1.999999987845058e-08,
+          "loss": 2.9118144512176514,
+          "rlt_loss": 2.784917116165161,
+          "vla_loss": 0.1268974244594574
+        },
+        {
+          "event": "initialization",
+          "rank": 3,
+          "step": 0,
+          "parameters": 4100198160,
+          "parameter_groups": {
+            "language": 2508531712,
+            "action_expert": 427932672,
+            "vision": 414803696,
+            "action_projection": 2165792,
+            "rlt_encoder": 371286016,
+            "rlt_decoder": 375478272
+          },
+          "fsdp_wrappers": 133,
+          "precision": "FP32 weights/gradients/Adam, BF16 autocast"
+        },
+        {
+          "event": "optimizer_step",
+          "rank": 3,
+          "step": 2,
+          "peak_allocated_gib": 21.9858455657959,
+          "peak_reserved_gib": 35.76953125,
+          "grad_norm": 3.7697091102600098,
+          "learning_rate": 2.999999892949745e-08,
+          "loss": 2.9238758087158203,
+          "rlt_loss": 2.7761785984039307,
+          "vla_loss": 0.1476973295211792
+        }
+      ]
+    }
+  },
+  "file_storage": {
+    "region": "A800\u4e13\u533a",
+    "initialized": true,
+    "quota_gb": 200,
+    "used_bytes": 0,
+    "mounted": false,
+    "instance_restarted": false
+  }
+}

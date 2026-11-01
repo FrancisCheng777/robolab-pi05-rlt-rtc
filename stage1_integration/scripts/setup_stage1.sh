@@ -10,7 +10,7 @@ fi
 PI05_SETUP_PYTHON="$PI05_SETUP_ROOT/.venv-stage1/bin/python"
 "$PI05_SETUP_PYTHON" -m pip install --upgrade pip
 "$PI05_SETUP_PYTHON" -m pip install torch==2.7.1 torchvision==0.22.1 \
-  --index-url https://download.pytorch.org/whl/cu126
+  --index-url "${PI05_TORCH_INDEX_URL:-https://download.pytorch.org/whl/cu126}"
 "$PI05_SETUP_PYTHON" -m pip install -r "$PI05_SETUP_ROOT/stage1/requirements.txt"
 "$PI05_SETUP_PYTHON" -m pip check
 PYTHONPATH="$(dirname "$PI05_SETUP_ROOT"):$PI05_SETUP_ROOT:$PI05_SETUP_ROOT/vendor/rlinf_stage1" \

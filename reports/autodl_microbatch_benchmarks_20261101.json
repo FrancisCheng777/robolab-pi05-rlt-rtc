@@ -1,0 +1,51 @@
+{
+  "input_kind": "synthetic",
+  "no_task_performance_claim": true,
+  "measurements": [
+    {
+      "micro_batch_size": 4,
+      "global_batch_size": 64,
+      "world_size": 4,
+      "steps_per_rank": 3,
+      "training_seconds_first_three_log_updates": [
+        16.4,
+        15.9,
+        15.6
+      ],
+      "peak_allocated_gib_max_rank": 21.74610662460327,
+      "peak_reserved_gib_max_rank": 32.79296875,
+      "all_ranks_completed": true,
+      "gradient_audit_records": 8
+    },
+    {
+      "micro_batch_size": 8,
+      "global_batch_size": 64,
+      "world_size": 4,
+      "steps_per_rank": 3,
+      "training_seconds_first_three_log_updates": [
+        9.77,
+        9.0,
+        9.33
+      ],
+      "peak_allocated_gib_max_rank": 22.13955068588257,
+      "peak_reserved_gib_max_rank": 32.79296875,
+      "all_ranks_completed": true,
+      "gradient_audit_records": 8
+    },
+    {
+      "micro_batch_size": 16,
+      "global_batch_size": 64,
+      "world_size": 4,
+      "steps_per_rank": 3,
+      "training_seconds_first_three_log_updates": [
+        6.17,
+        5.48,
+        5.45
+      ],
+      "peak_allocated_gib_max_rank": 22.040684700012207,
+      "peak_reserved_gib_max_rank": 34.28125,
+      "all_ranks_completed": true,
+      "gradient_audit_records": 8
+    }
+  ]
+}

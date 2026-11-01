@@ -5,11 +5,12 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 
 from omegaconf import OmegaConf
 
-from .config import load_config, validate_contract
+from .config import load_config, validate_contract, validate_resume_config
 from pi05_rlt_rtc.data.windows import validate_resume_window_policy
 
 
@@ -22,16 +23,17 @@ def preflight(cfg):
     from .data import PlugDataset, SyntheticDataset
 
     report = validate_contract(cfg)
-    if not torch.cuda.is_available() or torch.cuda.device_count() != 2:
+    world_size = cfg.stage1.expected_world_size
+    if not torch.cuda.is_available() or torch.cuda.device_count() != world_size:
         raise RuntimeError(
-            "Expose exactly two CUDA GPUs; this launcher does not train on the 4090"
+            f"Expose exactly {world_size} CUDA GPUs matching stage1.expected_world_size"
         )
     report["gpus"] = []
-    for i in range(2):
+    for i in range(world_size):
         p = torch.cuda.get_device_properties(i)
         if p.total_memory / 2**30 < cfg.stage1.minimum_gpu_gib:
             raise RuntimeError(
-                f"GPU {i} has {p.total_memory / 2**30:.1f} GiB; expected >=75 GiB"
+                f"GPU {i} has {p.total_memory / 2**30:.1f} GiB; expected >={cfg.stage1.minimum_gpu_gib} GiB"
             )
         if p.major < 8:
             raise RuntimeError("BF16 training requires Ampere or newer")
@@ -71,11 +73,12 @@ def preflight(cfg):
     report["worker"] = worker.PlugSftWorker.__name__
     if cfg.runner.resume_dir:
         actor_dir = Path(cfg.runner.resume_dir) / "actor"
+        validate_resume_config(cfg, OmegaConf.load(actor_dir / "stage1_resolved.yaml"))
         metadata = json.loads((actor_dir / "stage1_metadata.json").read_text())
         validate_resume_window_policy(metadata)
         from pi05_rlt_rtc.contracts.physical import ACTION_CONTRACT_ID as CONTRACT_ID
 
-        if metadata["action_contract_id"] != CONTRACT_ID or metadata["world_size"] != 2:
+        if metadata["action_contract_id"] != CONTRACT_ID or metadata["world_size"] != world_size:
             raise ValueError("Resume checkpoint contract/world size mismatch")
         if bool(metadata["synthetic"]) != bool(s.synthetic):
             raise ValueError("Cannot mix synthetic and real-data runs on resume")
@@ -101,7 +104,6 @@ def main():
     if args.mode == "smoke":
         defaults = [
             "stage1.synthetic=true",
-            "actor.global_batch_size=8",
             "runner.max_steps=5",
             "runner.save_interval=5",
             "actor.optim.total_training_steps=5",
@@ -109,6 +111,8 @@ def main():
         ]
         overrides = defaults + overrides
     cfg = load_config(overrides)
+    if args.mode == "smoke" and not any(x.startswith("actor.global_batch_size=") for x in args.overrides):
+        cfg.actor.global_batch_size = math.lcm(8, cfg.stage1.expected_world_size * cfg.actor.micro_batch_size)
     info = validate_contract(cfg)
     if args.mode == "train" and cfg.stage1.synthetic:
         raise ValueError("Synthetic inputs are only permitted in explicit smoke mode")
@@ -140,6 +144,8 @@ def main():
     from .worker import PlugSftWorker
 
     cfg = validate_cfg(cfg)
+    # Ray workers must receive concrete values, including custom topology resolvers.
+    OmegaConf.resolve(cfg)
     cluster = Cluster(cluster_cfg=cfg.cluster)
     placement = HybridComponentPlacement(cfg, cluster).get_strategy("actor")
     actor = PlugSftWorker.create_group(cfg).launch(

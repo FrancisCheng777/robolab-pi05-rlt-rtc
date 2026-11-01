@@ -1,0 +1,6 @@
+# Compatibility topology alias; all training parameters live in stage1_realworld.yaml.
+defaults:
+  - stage1_realworld
+  - _self_
+stage1:
+  expected_world_size: 4

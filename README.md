@@ -9,7 +9,7 @@
 - 模型：[RLinf RLT 文档](https://rlinf.readthedocs.io/en/latest/rst_source/examples/embodied/rlt.html)，固定 RLinf `c70606f08cdca259b8dec03d4430926b5b8fac9d` 的本地补丁快照。
 - 流程与奖励：[Physical Intelligence RLT 论文](https://arxiv.org/html/2604.23073v2)，采用 VLA 接近 → 人工切入关键阶段 → 人工终止评分。默认成功 `1`，失败/中间步骤 `0`；不是 RLinf 通用键盘 wrapper 的失败 `-1`。兼容选项 `rlinf_signed` 可显式选择，但不同奖励配置不能混合 replay。
 
-**当前交付是接口、运行闭环及无真机验证。** 仓库不包含示范、基础权重或已训练任务 checkpoint；完整 π0.5 的 4090 显存与 RTC 延迟验收、2×A800 全量训练及插入成功率仍需实际数据/权重与后续实验。tiny 随机模型测试不能代替这些验收。详见 [验证记录](docs/VALIDATION.md)。
+**当前交付包括接口、运行闭环、四卡完整模型的合成输入训练/保存/恢复验证。** 仓库不包含示范、基础权重或已训练任务 checkpoint；完整 π0.5 的 4090 显存与 RTC 延迟验收、4×A800 真实数据训练及插入成功率仍需实际数据与后续实验。tiny 随机模型测试不能代替这些验收。详见 [验证记录](docs/VALIDATION.md)。
 
 ## 硬件与软件基线
 
@@ -21,7 +21,7 @@
 | 本地 GPU | NVIDIA GeForce RTX 4090，`nvidia-smi` 实测 24564 MiB（24 GB 级） |
 | 本地系统 | Ubuntu 20.04.6，Linux 5.15.0-rt17，NVIDIA driver 570.133.07 |
 | 机械臂 SDK | 已安装 libfranka 0.9.0；本次 real backend 仅编译，不连接机械臂 |
-| Stage 1 | 2×A800 **80 GB**；启动器要求恰好两卡、每卡 ≥75 GiB；全量参数、FSDP full shard、BF16 运算 |
+| Stage 1 | 默认 4×A800 **80 GB**；卡数可配置、每卡 ≥75 GiB；全量参数、FSDP full shard、BF16 运算 |
 | Runtime | Python 3.11；PyTorch 2.7.1+cu128，CUDA runtime 12.8；验证见记录 |
 | Stage 1 依赖 | [固定 requirements](stage1_integration/stage1/requirements.txt)，独立环境；LeRobot 0.4.4 |
 | 控制与采样 | 1 kHz C++ servo；100 Hz CPU 目标刷新；15 Hz 策略/数据 |
@@ -49,9 +49,9 @@ D405 `observation.images.wrist` → `base_0_rgb`，图像掩码 `[true,false,fal
 
 ## 从 100 条示范到最终部署
 
-1. **采集与筛选。** 在数采仓库用已接受的采集入口收集约 100 条成功插入示范，覆盖合理初始位姿、插排位置与抓持差异。保留 session、原始 HDF5 和人工审核结果。把完整 session 留作验证，例如约 90 条训练、10 条验证；不要将同一 episode 的帧拆到两边。这个规模是启动方案，不保证任务覆盖充分。
+1. **采集与筛选。** 在数采仓库用已接受的采集入口收集约 150 条成功插入示范，覆盖合理初始位姿、插排位置与抓持差异。保留 session、原始 HDF5 和人工审核结果。把完整 session 留作验证，例如约 135 条训练、15 条验证；不要将同一 episode 的帧拆到两边。这个规模是启动方案，不保证任务覆盖充分。
 2. **导出 v2。** 用 pinned 数采 exporter 导出 `train/`、`validation/` 与统计文件。只在 train 拟合 norm stats。先运行 `scripts/check_v2_dataset.py`，确认动作、窗口、单相机映射和 mock 标识；生产训练禁止 `--allow-mock`。
-3. **2×A800 Stage 1。** 用 π0.5 基础权重初始化，全量训练 π0.5 + RLT 表征/重建模块。先预检和独立 synthetic smoke，再运行真实 SFT。RTC 在此阶段关闭。选择 checkpoint 时同时看独立验证集 flow loss、RLT 重建 loss 和后续冻结策略 rollout；2000 steps 是配置起点，不是最佳值承诺。
+3. **4×A800 Stage 1。** 用 π0.5 基础权重初始化，全量训练 π0.5 + RLT 表征/重建模块。先预检和独立 synthetic smoke，再运行真实 SFT。RTC 在此阶段关闭。选择 checkpoint 时同时看独立验证集 flow loss、RLT 重建 loss 和后续冻结策略 rollout；batch 64、首轮最多 8000 steps；每 2000 步评估，不是最佳值承诺。
 4. **冻结与无运动验收。** 把完整 actor 导出目录拷到 4090。配置 checkpoint、norm stats 和本机解释器。先做资产校验、录制输入离线推理和全尺寸 RTC profile，不启动设备。当前 H/C/D=`10/5/2`，15 Hz，对应规划 deadline 约 **133 ms**；必须测到实际 full-VJP 延迟满足要求才用于连续控制，不能用 tiny 测试时间代替。
 5. **固定 Stage-1 基线评估。** 在人工准备的初始条件下，用 `session --mode eval` 跑固定 teacher。每轮 `r` 接近，`b` 标记关键阶段，`a/c` 结束判定；未进入关键阶段的失败也保留在整轮成功率分母。评分后先 hold，不自动回位。需要回位时明确按 `h`，确认完成后再 `r`。
 6. **4090 Stage 2。** 新训练 session 先用 teacher 采样。默认至少 5 个有效关键阶段 episode 且至少 32 条可学习 chunk transition 后，actor 做 100 次 BC warmup，再做 100 次 critic 更新、25 次 actor 更新。之后每个新增有效 episode 都从累积 replay 更新 100 次 critic、25 次 actor，配置可调；BC warmup 单独计数。π0.5 和 RLT 全程冻结。
@@ -107,7 +107,13 @@ bash scripts/start_stage1_integrated.sh smoke runner.logger.experiment_name=synt
 bash scripts/start_stage1_integrated.sh train runner.logger.experiment_name=plug_real_sft
 ```
 
-生产训练默认 `stage1.synthetic=false`，不从 synthetic smoke checkpoint 恢复。推荐主入口是 `start_stage1_integrated.sh`；旧通用上游 SFT 入口仅保留供开发审查。
+生产训练默认 `stage1.synthetic=false`，不从 synthetic smoke checkpoint 恢复。推荐主入口是 `start_stage1_integrated.sh`；`start_stage1.sh` 也委托给同一入口，旧 batch 32 模板已归档至 `configs/legacy/`。
+
+**AutoDL 4×A800 真机训练**使用 `bash scripts/start_stage1_4xa800.sh inspect`，
+所有当前 Stage-1 入口共享 `stage1_integration/configs/stage1_realworld.yaml`；四卡入口只固定拓扑：RLinf 真机 RLT 的 batch 64、
+LR 1e-5、warmup 1000、20000 步 cosine 周期；首轮最多 8000 步，按验证结果选模型。
+默认每卡 micro-batch 16、四卡全局 batch 64、每次更新无需累积。两卡/四卡别名不再各存一套超参数；通用入口用 `PI05_WORLD_SIZE` 或 `stage1.expected_world_size` 选卡数。Stage-2 的 batch 256 属于小型 actor–critic，不应改成 Stage-1 的 64。该硬件参数已通过四卡完整模型合成输入测试；更换卡数/显卡时重新选择可整除全局 batch 的 micro-batch。数据、磁盘及 checkpoint 验收完成前不要启动正式训练。
+参数来源、与官方硬件接口的差异、启动方法和存储预算见 [四卡说明](docs/STAGE1_4XA800.md)。
 
 Runtime 安装使用已按官方 OpenPI commit `215abfb217dbac7d5f1273282331b9b1866c0479` 配好的 Python 3.11 环境作为只读父环境：
 

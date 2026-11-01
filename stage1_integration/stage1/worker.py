@@ -48,7 +48,7 @@ class PlugSftWorker(FSDPVlaSftWorker):
                 "Use a separate held-out evaluation; no training-data SR metric"
             )
         if self._world_size != self.cfg.stage1.expected_world_size:
-            raise ValueError(f"Expected 2 GPU workers, got {self._world_size}")
+            raise ValueError(f"Expected {self.cfg.stage1.expected_world_size} GPU workers, got {self._world_size}")
         s, m = self.cfg.stage1, self.cfg.actor.model.openpi
         if s.synthetic:
             dataset = SyntheticDataset(

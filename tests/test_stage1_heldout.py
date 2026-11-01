@@ -10,7 +10,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'stage1_integration
 from stage1.evaluate import evaluate_batches
 
 
-def test_heldout_weights_unequal_batches_and_never_augments(monkeypatch):
+@pytest.mark.parametrize("limit", [None, 2])
+def test_heldout_weights_unequal_batches_and_never_augments(monkeypatch, limit):
     module = ModuleType('rlinf.models.embodiment.openpi.modules.model')
     modes = []
     module.preprocess_observation = lambda obs, train: modes.append(train) or obs
@@ -27,7 +28,7 @@ def test_heldout_weights_unequal_batches_and_never_augments(monkeypatch):
         def build_prefix_cache(self, obs): return torch.zeros(1), None, None
         def _select_rlt_prefix_embeddings(self, prefix, mask, tokens): return prefix, mask
         def _rlt_forward(self, prefix, mask): return torch.tensor(2.), {}
-    result = evaluate_batches(Model(), [torch.ones(2,10,32), torch.full((1,10,32), 4.)], max_batches=2)
+    result = evaluate_batches(Model(), [torch.ones(2,10,32), torch.full((1,10,32), 4.)], max_batches=limit)
     assert result['examples'] == 3
     assert result['flow_mse_physical8'] == result['flow_mse_all32'] == 2.
     assert result['rlt_reconstruction_loss'] == 2.

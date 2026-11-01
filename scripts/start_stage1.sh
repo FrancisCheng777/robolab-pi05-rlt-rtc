@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
-# Register the physical profile first, then launch RLinf's unchanged SFT runner.
+# Compatibility entry: use the same canonical Stage-1 config and isolated runtime.
 set -euo pipefail
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-: "${RLINF_ROOT:?set RLINF_ROOT to the isolated, pinned RLinf checkout}"
-: "${PI05_DATASET_ROOT:?set PI05_DATASET_ROOT to the real export containing train/ and norm_stats.json}"
-: "${PI05_BASE_CHECKPOINT:?set PI05_BASE_CHECKPOINT to compatible pi05 base weights}"
-export EMBODIED_PATH="${RLINF_ROOT}/examples/embodiment"
-export PYTHONPATH="${REPO_ROOT}:${RLINF_ROOT}:${PYTHONPATH:-}"
-python -m pi05_rlt_rtc.adapters.upstream_profile --rlinf-root "$RLINF_ROOT"
-exec python "$RLINF_ROOT/examples/sft/train_vla_sft.py" \
-  --config-path "$REPO_ROOT/configs" --config-name stage1_panda "$@"
+PI05_RUNTIME_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+export PI05_DATASET="${PI05_DATASET:-${PI05_DATASET_ROOT:-}}"
+export PI05_BASE_MODEL="${PI05_BASE_MODEL:-${PI05_BASE_CHECKPOINT:-}}"
+# Empty variables must not override the canonical config defaults.
+[[ -n "$PI05_DATASET" ]] || unset PI05_DATASET
+[[ -n "$PI05_BASE_MODEL" ]] || unset PI05_BASE_MODEL
+if [[ $# == 0 ]]; then set -- inspect; fi
+exec bash "$PI05_RUNTIME_ROOT/scripts/start_stage1_integrated.sh" "$@"

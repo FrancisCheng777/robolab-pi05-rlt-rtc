@@ -70,8 +70,8 @@ class DataContractTest(unittest.TestCase):
     def test_config_keeps_effective_batch_and_rejects_no_shard(self):
         cfg = load_config()
         result = validate_contract(cfg)
-        self.assertEqual(result["global_batch_size"], 256)
-        self.assertEqual(result["accumulation_steps"], 128)
+        self.assertEqual(result["global_batch_size"], 64)
+        self.assertEqual(result["accumulation_steps"], 1)
         cfg.actor.fsdp_config.sharding_strategy = "no_shard"
         with self.assertRaisesRegex(ValueError, "full sharding"):
             validate_contract(cfg)

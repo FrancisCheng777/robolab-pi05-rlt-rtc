@@ -1,3 +1,5 @@
+# ARCHIVED: unvalidated external runner template; NOT a production entry point.
+# Use stage1_integration/configs/stage1_realworld.yaml and scripts/start_stage1.sh.
 # Physical data only. GPU memory/performance must be measured.
 # Gradient checkpointing remains off: the pinned SFT path disables it internally.
 defaults:

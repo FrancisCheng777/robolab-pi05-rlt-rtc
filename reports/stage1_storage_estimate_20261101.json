@@ -1,0 +1,19 @@
+{
+  "method": "Full production architecture on meta device; no allocated weights or training",
+  "parameters": 4100198160,
+  "groups": {
+    "llm": 2936464384,
+    "img": 414803696,
+    "action_in_proj": 33792,
+    "time_mlp_in": 1049600,
+    "time_mlp_out": 1049600,
+    "action_out_proj": 32800,
+    "rlt_module": 746764288
+  },
+  "state_dict_bytes": 16400792640,
+  "fp32_weights_GB": 16.40079264,
+  "fp32_adam_two_moments_GB": 32.80158528,
+  "dcp_plus_full_export_GB": 65.60317056,
+  "dcp_plus_full_export_GiB": 61.09771370887756,
+  "note": "Tensor payload estimate; serialization and metadata add overhead. Four shards divide a single model state, not four full copies."
+}

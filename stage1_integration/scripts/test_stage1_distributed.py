@@ -1,4 +1,4 @@
-"""Two-rank CPU FSDP regression, no CUDA allocation and no Ray cluster."""
+"""Multi-rank CPU FSDP regression, no CUDA allocation and no Ray cluster."""
 
 import copy
 import json
@@ -47,9 +47,8 @@ def main():
     )
     dist.init_process_group("gloo")
     rank = dist.get_rank()
-    if dist.get_world_size() != 2:
-        raise ValueError("Run with torchrun --nproc_per_node=2")
-    cfg = load_config()
+    world_size = dist.get_world_size()
+    cfg = load_config([f"stage1.expected_world_size={world_size}"])
     validate_contract(cfg)
     from rlinf.config import validate_fsdp_cfg, validate_sft_cfg
 
@@ -70,7 +69,7 @@ def main():
         use_orig_params=True,
         limit_all_gathers=True,
         sync_module_states=False,
-        device_mesh=init_device_mesh("cpu", (2,), mesh_dim_names=("fsdp",)),
+        device_mesh=init_device_mesh("cpu", (world_size,), mesh_dim_names=("fsdp",)),
     )
     wrappers = [m for m in model.modules() if isinstance(m, FSDP)]
     assert len(wrappers) > 4 and all(
@@ -80,7 +79,7 @@ def main():
     warmup_optimizer_state(optimizer)
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda step: 1.0)
 
-    # Same effective batch: two ranks x two accumulated micro-batches.
+    # Same effective batch: world_size ranks x two accumulated micro-batches.
     for micro in range(2):
         torch.manual_seed(100 + 10 * rank + micro)
         loss = model(data=batch())["loss"] / 2
@@ -97,10 +96,10 @@ def main():
         reference.parameters(), lr=1e-4, foreach=False
     )
     warmup_optimizer_state(reference_optimizer)
-    for r in range(2):
+    for r in range(world_size):
         for micro in range(2):
             torch.manual_seed(100 + 10 * r + micro)
-            (reference(data=batch())["loss"] / 4).backward()
+            (reference(data=batch())["loss"] / (2 * world_size)).backward()
     reference_optimizer.step()
     state = get_model_state_dict(
         model, options=StateDictOptions(full_state_dict=True, cpu_offload=False)
@@ -154,7 +153,7 @@ def main():
         fresh = tiny_model()
         fresh.load_state_dict(full, strict=True)
         report = {
-            "world_size": 2,
+            "world_size": world_size,
             "device": "cpu/gloo",
             "fsdp_wrappers": len(wrappers),
             "full_shard": True,
@@ -166,7 +165,8 @@ def main():
             "bf16_autocast_backward": True,
             "gpu_memory_measured": False,
         }
-        (ROOT / "reports/stage1_distributed_cpu.json").write_text(
+        (ROOT / "reports").mkdir(parents=True, exist_ok=True)
+        (ROOT / f"reports/stage1_distributed_cpu_{world_size}ranks.json").write_text(
             json.dumps(report, indent=2)
         )
         print(json.dumps(report))

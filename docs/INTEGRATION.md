@@ -1,3 +1,5 @@
+> 当前 Stage-1 以 [四卡真机训练说明](STAGE1_4XA800.md) 和 `stage1_integration/configs/stage1_realworld.yaml` 为准：4 卡、global batch 64、单 wrist、0.05 v2。下文的双相机、0.03、双卡或旧 batch 数字仅记录历史，不作为启动配置。
+
 > Historical integration notes. Current hardware, v2 data contract and session commands: [README](../README.md). Current validation: [VALIDATION](VALIDATION.md).
 
 # 4090 整合版：代码边界、文件职责与无运动验证

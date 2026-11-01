@@ -1,3 +1,5 @@
+> 当前 Stage-1 以 [四卡真机训练说明](STAGE1_4XA800.md) 和 `stage1_integration/configs/stage1_realworld.yaml` 为准：4 卡、global batch 64、单 wrist、0.05 v2。下文的双相机、0.03、双卡或旧 batch 数字仅记录历史，不作为启动配置。
+
 > 更新：当前整合版和本次检查见 [INTEGRATION.md](INTEGRATION.md)。下文保留原阶段记录；本次新增 smoke/profile 必须提供保存的观测，不会创建机器人环境。历史直接给动作记录不构成模型推理验收。
 
 # Stage-1 完整连续窗口对齐（4090 独立副本，2026-10-29）

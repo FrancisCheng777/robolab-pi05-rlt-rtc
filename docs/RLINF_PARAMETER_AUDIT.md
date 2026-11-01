@@ -87,3 +87,9 @@ Stage-1 则沿用 π0.5 + RLT 模块体系。核对 provenance 哈希，`openpi/
 - 完整回归：`OMP_NUM_THREADS=1 .venv-runtime/bin/python -m pytest tests -q --tb=short -rs`，**198 passed, 19 skipped**，42.51 秒。跳过项依赖真实数据、权重或未配置的 bridge 测试环境。日志见 `reports/official_ac_20261101/full.log`；修改前备份：同目录 `before.tgz`。
 
 以上是代码与 mock 回归，不是插入成功率、真实训练收敛、完整模型 RTC 延迟或真机安全验收。本次没有启动机器人或训练真实任务模型。
+
+## Stage-1 真机 SFT（2026-11-01）
+
+当前配置唯一来源：`stage1_integration/configs/stage1_realworld.yaml`。参考固定 RLinf `c70606f08cdca259b8dec03d4430926b5b8fac9d` 的 `examples/sft/config/realworld_rlt_stage1_sft_openpi_pi05.yaml`：global batch 64、LR 1e-5、warmup 1000、cosine 20000 步、min LR 2.5e-6、Adam 0.9/0.95、eps 1e-8、WD 1e-10、clip 1、RLT alpha 1、seed 42。首轮预算 8000 步属于本任务决定，不改变 20000 步衰减周期。
+
+硬件适配为默认四卡 FULL_SHARD；micro-batch 经完整模型合成输入实测由 1 提升为 16，global batch 保持 64。保留 Panda 的 state9/action8、单 wrist、horizon 10，不照搬官方另一机器人动作接口。此处 batch 64 与本文 Stage-2 actor–critic 的 batch 256 分属两个阶段。

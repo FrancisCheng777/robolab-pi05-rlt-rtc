@@ -1,0 +1,314 @@
+{
+  "timestamp_utc": "2026-11-01T13:58:59.613542+00:00",
+  "reason": "User requested deleting synthetic test checkpoints while retaining test records",
+  "archive": "/root/autodl-tmp/preparation/synthetic-validation-records-20261101",
+  "removed_checkpoints": [
+    {
+      "path": "/dev/shm/pi05-validation/full4-micro1/checkpoints/global_step_3",
+      "bytes": 65625135224,
+      "metadata": {
+        "action_contract_id": "panda_delta_q0.05_robotiq_width0.085_v2",
+        "synthetic": true,
+        "upstream_commit": "c70606f08cdca259b8dec03d4430926b5b8fac9d",
+        "patched_files": {
+          "rlinf/config.py": "9df8d6a5f5089b1fa01e005fa9a2dec9979fb119ecdf567e70d287713904641a",
+          "rlinf/models/embodiment/openpi/pi0.py": "7f4da5b6e1d78cd47f47ab1db7ca93f89a575c47729a6f83f22284ec998e0660",
+          "rlinf/models/embodiment/openpi/modules/siglip.py": "52b8e683b7988c7e9822077546123312be28caa65df27903551ee8dc0365b103",
+          "rlinf/models/embodiment/modules/rlt_token_transformer.py": "6cdaf5b21c479936d6e5bf04cc954f1fa64d6c21bd58f0eb3fd509b4a073f5be"
+        },
+        "normalization": "quantile_q01_q99_then_pad",
+        "tokenize_state_before_padding": true,
+        "camera_views": [
+          "wrist"
+        ],
+        "policy_image_mapping": {
+          "base_0_rgb": "wrist"
+        },
+        "tokenizer_sha256": "8986bb4f423f07f8c7f70d0dbe3526fb2316056c17bae71b1ea975e77a168fc6",
+        "window_policy": {
+          "id": "complete_contiguous_no_intervention_v1",
+          "control_hz": 15,
+          "tail_padding": false,
+          "cross_episode": false,
+          "max_interval_error_fraction": 0.5,
+          "max_grid_error_frames": 1.0,
+          "exclude_intervention": true,
+          "timestamp_column": "source_time"
+        },
+        "parameters": 4100198160,
+        "world_size": 4,
+        "step": 3
+      }
+    },
+    {
+      "path": "/dev/shm/pi05-validation/full4-micro1/checkpoints/global_step_4",
+      "bytes": 65625135283,
+      "metadata": {
+        "action_contract_id": "panda_delta_q0.05_robotiq_width0.085_v2",
+        "synthetic": true,
+        "upstream_commit": "c70606f08cdca259b8dec03d4430926b5b8fac9d",
+        "patched_files": {
+          "rlinf/config.py": "9df8d6a5f5089b1fa01e005fa9a2dec9979fb119ecdf567e70d287713904641a",
+          "rlinf/models/embodiment/openpi/pi0.py": "7f4da5b6e1d78cd47f47ab1db7ca93f89a575c47729a6f83f22284ec998e0660",
+          "rlinf/models/embodiment/openpi/modules/siglip.py": "52b8e683b7988c7e9822077546123312be28caa65df27903551ee8dc0365b103",
+          "rlinf/models/embodiment/modules/rlt_token_transformer.py": "6cdaf5b21c479936d6e5bf04cc954f1fa64d6c21bd58f0eb3fd509b4a073f5be"
+        },
+        "normalization": "quantile_q01_q99_then_pad",
+        "tokenize_state_before_padding": true,
+        "camera_views": [
+          "wrist"
+        ],
+        "policy_image_mapping": {
+          "base_0_rgb": "wrist"
+        },
+        "tokenizer_sha256": "8986bb4f423f07f8c7f70d0dbe3526fb2316056c17bae71b1ea975e77a168fc6",
+        "window_policy": {
+          "id": "complete_contiguous_no_intervention_v1",
+          "control_hz": 15,
+          "tail_padding": false,
+          "cross_episode": false,
+          "max_interval_error_fraction": 0.5,
+          "max_grid_error_frames": 1.0,
+          "exclude_intervention": true,
+          "timestamp_column": "source_time"
+        },
+        "parameters": 4100198160,
+        "world_size": 4,
+        "step": 4
+      }
+    },
+    {
+      "path": "/dev/shm/pi05-validation/selected-micro16/checkpoints/global_step_2",
+      "bytes": 65625135617,
+      "metadata": {
+        "action_contract_id": "panda_delta_q0.05_robotiq_width0.085_v2",
+        "synthetic": true,
+        "upstream_commit": "c70606f08cdca259b8dec03d4430926b5b8fac9d",
+        "patched_files": {
+          "rlinf/config.py": "9df8d6a5f5089b1fa01e005fa9a2dec9979fb119ecdf567e70d287713904641a",
+          "rlinf/models/embodiment/openpi/pi0.py": "7f4da5b6e1d78cd47f47ab1db7ca93f89a575c47729a6f83f22284ec998e0660",
+          "rlinf/models/embodiment/openpi/modules/siglip.py": "52b8e683b7988c7e9822077546123312be28caa65df27903551ee8dc0365b103",
+          "rlinf/models/embodiment/modules/rlt_token_transformer.py": "6cdaf5b21c479936d6e5bf04cc954f1fa64d6c21bd58f0eb3fd509b4a073f5be"
+        },
+        "normalization": "quantile_q01_q99_then_pad",
+        "tokenize_state_before_padding": true,
+        "camera_views": [
+          "wrist"
+        ],
+        "policy_image_mapping": {
+          "base_0_rgb": "wrist"
+        },
+        "tokenizer_sha256": "8986bb4f423f07f8c7f70d0dbe3526fb2316056c17bae71b1ea975e77a168fc6",
+        "window_policy": {
+          "id": "complete_contiguous_no_intervention_v1",
+          "control_hz": 15,
+          "tail_padding": false,
+          "cross_episode": false,
+          "max_interval_error_fraction": 0.5,
+          "max_grid_error_frames": 1.0,
+          "exclude_intervention": true,
+          "timestamp_column": "source_time"
+        },
+        "parameters": 4100198160,
+        "world_size": 4,
+        "step": 2
+      }
+    }
+  ],
+  "preserved_records": [
+    {
+      "path": "validation/selected-micro16/diagnostics_rank_0.jsonl",
+      "sha256": "8abd7c37fd684ef6f4e6c816ffe7109e09549af9c34e10a20bb3a99f7ad37424"
+    },
+    {
+      "path": "validation/selected-micro16/diagnostics_rank_1.jsonl",
+      "sha256": "df1bbb4f979bd22dc5b6ccbf9e177c52d355214482aa5aa320415ab07849cf13"
+    },
+    {
+      "path": "validation/selected-micro16/diagnostics_rank_2.jsonl",
+      "sha256": "1973463d8e079691aaa7c644cfa201bf1cb9a832a8f626d32cfaf3a969523916"
+    },
+    {
+      "path": "validation/selected-micro16/diagnostics_rank_3.jsonl",
+      "sha256": "cce55e717d48d8e2aa3a5689f0bc4447e034f0caa73d8aea4d5d9033a04eef4b"
+    },
+    {
+      "path": "validation/selected-micro16/requested_config.yaml",
+      "sha256": "bfc39bd85b15287a7670601915a30b2d7186d8f7291a90acf7ddb1e94683e811"
+    },
+    {
+      "path": "validation/selected-micro16/preflight.json",
+      "sha256": "5bed4e6796dcdac43566337567e2c6968c99c30eaa5aadacd8b69ba53d496cb1"
+    },
+    {
+      "path": "validation/tensorboard/events.out.tfevents.1793540752.autodl-container-67ab41afff-897c50da.50223.0",
+      "sha256": "78e0e83d3693996c797dc7241187a0bdc1f02f7ffe032c4fec267ec9766043d2"
+    },
+    {
+      "path": "validation/tensorboard/events.out.tfevents.1793540626.autodl-container-67ab41afff-897c50da.42879.0",
+      "sha256": "972d2f3c4864214e35aec777b812e7a9d87373d554585400fc8b9c9ee65e45ef"
+    },
+    {
+      "path": "validation/tensorboard/events.out.tfevents.1793539892.autodl-container-67ab41afff-897c50da.13647.0",
+      "sha256": "af67e452da921955078b7ce24dcfb21ad5a7e4ef6d493062e8e547f071dc1bb5"
+    },
+    {
+      "path": "validation/tensorboard/events.out.tfevents.1793539605.autodl-container-67ab41afff-897c50da.6189.0",
+      "sha256": "8097ca1b480f4a14e15fbfce402f98c2caf75451666e5c97829208f10c6eadb0"
+    },
+    {
+      "path": "validation/tensorboard/config.yaml",
+      "sha256": "787f6560e1176ae968fc1a151c4dcf54acfb2df87a2bfdcd92e098bd2d648b58"
+    },
+    {
+      "path": "validation/full4-micro1/diagnostics_rank_0.jsonl",
+      "sha256": "7fd18c4113ff094c42409c8eecc9904af8f954da6e639497560b8905b4d6d723"
+    },
+    {
+      "path": "validation/full4-micro1/diagnostics_rank_1.jsonl",
+      "sha256": "23cc0c184cd00b636532f072d5ddbdb5e5601770df3326d5a828c753909662ef"
+    },
+    {
+      "path": "validation/full4-micro1/diagnostics_rank_3.jsonl",
+      "sha256": "d1d072cd5d3cffa55772b8d4c0e3064b937623bbb8a1a84c26998b4346c25055"
+    },
+    {
+      "path": "validation/full4-micro1/diagnostics_rank_2.jsonl",
+      "sha256": "064b48b7a1e7906692d4520f82177915a287791bed13f462d44dff4d3a0bbe92"
+    },
+    {
+      "path": "validation/full4-micro1/requested_config.yaml",
+      "sha256": "3f420b829c02ff6af2d8200c756fa5ddedf975a05c0e4658b3f43895db993096"
+    },
+    {
+      "path": "validation/full4-micro1/preflight.json",
+      "sha256": "3cb10689a6e0783f2d67f969350518aadf67d60b5159a879945bfcaf8fe5954f"
+    },
+    {
+      "path": "validation/selected-micro16/checkpoints/global_step_2/actor/stage1_metadata.json",
+      "sha256": "7ae9ae1c6ad97f435854cf51cec8f733a464391ea808c04b1b0626d5ada97f39"
+    },
+    {
+      "path": "validation/selected-micro16/checkpoints/global_step_2/actor/stage1_resolved.yaml",
+      "sha256": "e8a30ca7747f12db9d42c3ad44850692c3a42479e7a1687fd39eec71c48c95e4"
+    },
+    {
+      "path": "validation/selected-micro16/checkpoints/global_step_2/actor/paligemma_tokenizer.model",
+      "sha256": "8986bb4f423f07f8c7f70d0dbe3526fb2316056c17bae71b1ea975e77a168fc6"
+    },
+    {
+      "path": "validation/selected-micro16/checkpoints/global_step_2/actor/training_contract.json",
+      "sha256": "0f3827821e89f042fc7589e8d011913a3dd3334e7c06368f8e70e4a034c90990"
+    },
+    {
+      "path": "validation/selected-micro16/checkpoints/global_step_2/actor/rng.pt",
+      "sha256": "f24cb25ee9395ab9dcee985647babf9a2b01990ca8588e378074ccf3dc819591"
+    },
+    {
+      "path": "validation/selected-micro16/checkpoints/global_step_2/actor/data.pt",
+      "sha256": "8b812cc7b834680fdccc50a4511c2f75c1682c1b163b988d83b6698a6b0c139d"
+    },
+    {
+      "path": "validation/selected-micro16/checkpoints/global_step_2/actor/dcp_checkpoint/.metadata",
+      "sha256": "6b6e0352214ee68ec8ff56b0495034d981d7064bf0621d6905d1228588775e18"
+    },
+    {
+      "path": "validation/full4-micro1/checkpoints/global_step_4/actor/stage1_metadata.json",
+      "sha256": "f52483dee79aaa43944b65d3d16f51d85190edc26f5ed5e623caf1ab3d4f006c"
+    },
+    {
+      "path": "validation/full4-micro1/checkpoints/global_step_4/actor/stage1_resolved.yaml",
+      "sha256": "d812c86dd10f7b5dc3e48212b9a80c32decca28659be63cbd7a20853b84693c2"
+    },
+    {
+      "path": "validation/full4-micro1/checkpoints/global_step_4/actor/paligemma_tokenizer.model",
+      "sha256": "8986bb4f423f07f8c7f70d0dbe3526fb2316056c17bae71b1ea975e77a168fc6"
+    },
+    {
+      "path": "validation/full4-micro1/checkpoints/global_step_4/actor/training_contract.json",
+      "sha256": "0f3827821e89f042fc7589e8d011913a3dd3334e7c06368f8e70e4a034c90990"
+    },
+    {
+      "path": "validation/full4-micro1/checkpoints/global_step_4/actor/rng.pt",
+      "sha256": "cb8f9d04a7c21db6f7efd0eb9e2b597e612f5fd3697d9bd4695723f91ce61f9d"
+    },
+    {
+      "path": "validation/full4-micro1/checkpoints/global_step_4/actor/data.pt",
+      "sha256": "ff0be390acc42d0810793a399220bee2c0e967cdb5ad5bb225334865c967dd91"
+    },
+    {
+      "path": "validation/full4-micro1/checkpoints/global_step_4/actor/dcp_checkpoint/.metadata",
+      "sha256": "f8af15501ba48a4129268e75e1242d970f610194f5a45728c9e1f4cd680261bb"
+    },
+    {
+      "path": "validation/full4-micro1/checkpoints/global_step_3/actor/stage1_metadata.json",
+      "sha256": "bc39b25a3cb2e066d89008e9973be978ebe48ef64ad3b6e1cadc2a3aff578cb0"
+    },
+    {
+      "path": "validation/full4-micro1/checkpoints/global_step_3/actor/stage1_resolved.yaml",
+      "sha256": "9320243660d34d88007c40933b02b4f2fab255c47c0a918bed249d2b38b68070"
+    },
+    {
+      "path": "validation/full4-micro1/checkpoints/global_step_3/actor/paligemma_tokenizer.model",
+      "sha256": "8986bb4f423f07f8c7f70d0dbe3526fb2316056c17bae71b1ea975e77a168fc6"
+    },
+    {
+      "path": "validation/full4-micro1/checkpoints/global_step_3/actor/training_contract.json",
+      "sha256": "0f3827821e89f042fc7589e8d011913a3dd3334e7c06368f8e70e4a034c90990"
+    },
+    {
+      "path": "validation/full4-micro1/checkpoints/global_step_3/actor/rng.pt",
+      "sha256": "c1a4080799e6eb55c14fc012b4d8fc87eb55bc0dcb8315b586fa0cafdeea437b"
+    },
+    {
+      "path": "validation/full4-micro1/checkpoints/global_step_3/actor/data.pt",
+      "sha256": "c1fc537854251f1777104a409bc39f10c71e90ce9ac6a161960b5b0080d95e66"
+    },
+    {
+      "path": "validation/full4-micro1/checkpoints/global_step_3/actor/dcp_checkpoint/.metadata",
+      "sha256": "de7c3800457f515addf7c7d147881c549b23f4af90e771c4f2faff9d0ba478bc"
+    },
+    {
+      "path": "preparation/validate-four-gpu.log",
+      "sha256": "18418cd5dbe06d686ac8fd2de418f5f081cc298bf6da0ef0bfe8dca7af37c7d6"
+    },
+    {
+      "path": "preparation/validate-selected-micro16.log",
+      "sha256": "3d42e5f4c3c2cb02be297b7834bb15ac445950245d74d72c2b8bf30e7cad6ed8"
+    },
+    {
+      "path": "preparation/benchmark-four-gpu.log",
+      "sha256": "74c26332d7c537ff3dbdda0beb86039d8ab22aa420aa5dc855ad5f24addb0314"
+    },
+    {
+      "path": "preparation/benchmark-micro4.log",
+      "sha256": "afc4372ffbe4c6fb1f4f1f879ec5ce2457daebe1acc19da6d1c132c486e00770"
+    },
+    {
+      "path": "preparation/benchmark-micro8.log",
+      "sha256": "394444c9a964b40529a2b3e8608868409c79aaadaacd1677244567cd43217323"
+    },
+    {
+      "path": "preparation/benchmark-micro16-status.log",
+      "sha256": "940d01e9aff8ded5cdf60b295fd937472b8775bda188e7e3a3e5c6c36e0e456c"
+    },
+    {
+      "path": "preparation/benchmark-micro16.log",
+      "sha256": "2cf2d99f755ed359c55ebb87c08f124735f7ceb2e0acc87bb3167299e326513f"
+    },
+    {
+      "path": "preparation/gpu-collectives-base.log",
+      "sha256": "42111c73992b06a46a59b9dd3efbd82923629c286df972be024744cfee0068ad"
+    },
+    {
+      "path": "preparation/full-preflight.json",
+      "sha256": "856146f17144298387c5aebf50b25ec7e9debd18c41096c86c4423dcea6a868e"
+    },
+    {
+      "path": "preparation/pip-freeze.txt",
+      "sha256": "339cb8d983143867bc9602abea4b798ee797eb02f723f73417d76306e98af66d"
+    }
+  ],
+  "removed_bytes": 196875406124,
+  "cleanup_completed": true
+}

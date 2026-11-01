@@ -1,0 +1,35 @@
+{
+  "base_commit": "fa8aa46fec7f4821fe8c75ac3d003d2dd5d60849",
+  "files": {
+    "README.md": "5c77351d238d42df6a5353fad995df40858ae0e0c3c1ade1530ef53820a5e8fe",
+    "configs/legacy/stage1_panda.yaml": "33ccb5f8c259086137352431e1fd957d10c111e01b479ccefe396c9c3180adfc",
+    "configs/training_contract.json": "6e4b32ed852e2b43da22dd329adfdfd3c184185f0c5dbfc3c9dce6583886542f",
+    "docs/DEPLOYMENT.md": "192656a6c022df63638df3fde34a9dbf93c3d2fcfb61497344f8f9218771cf42",
+    "docs/INTEGRATION.md": "c88ee64ed4ad7c827b52fde4b6ce8f392b3a8017bf23bfaa78f1747e0223b198",
+    "docs/RLINF_PARAMETER_AUDIT.md": "ba3bccf5352b0a5e64d217dd4d7b0cfa3540d88abfbe4df764f2052afcf0794d",
+    "docs/STAGE1_4XA800.md": "1a879a4b5958bd5c63237e56392ed478e0028887ded208f39ffc2c6fbd7a6f60",
+    "docs/STAGE1_WINDOW_ALIGNMENT.md": "143ab85526c95ac21027d038a2892be7d179512673bfb5e699fc074704a22897",
+    "docs/STATUS.md": "7528cd4a712cd6211b2026deeeb40d9b985a61006ec2326bb04556ee85d15bcf",
+    "docs/VALIDATION.md": "5ee8849dbe53ed237368c8ed5b92c96f0a43fac0d4359b3830ecbbe217a1bb68",
+    "scripts/start_stage1.sh": "7e099dd98202f5bf2323e85809dbe10e2fe2efb635311298b6289908a74ea0e6",
+    "scripts/start_stage1_4xa800.sh": "df28a7fbb9037702e3b19558a17fbc136cdc4eb449cffbc2c0e8a550b50d9de0",
+    "stage1_integration/configs/stage1_2xa800.yaml": "502221d7ec48447154e057a483a105c6a91585e46206f626d0b828c84dfb7347",
+    "stage1_integration/configs/stage1_4xa800_realworld.yaml": "ed5a2b387541781ee199fcceb3cfb823d0449d29fcda0fbc5a94bb3043b285f7",
+    "stage1_integration/configs/stage1_realworld.yaml": "77a4ff7e1f77a6733406e9628100b33933fce1388df042c4034280345d34e401",
+    "stage1_integration/configs/training_contract.json": "6e4b32ed852e2b43da22dd329adfdfd3c184185f0c5dbfc3c9dce6583886542f",
+    "stage1_integration/docs/STAGE1_2XA800.md": "89dd01a5234fbe91a1fbf6b5265efd07cb2b8ed835bbacd93c8a148c53a834c9",
+    "stage1_integration/scripts/setup_stage1.sh": "6634110f4893427b910d0bc1ded04b8581df978d74816757fffd9aaea1cef0c2",
+    "stage1_integration/scripts/test_stage1_distributed.py": "8d4c0f667706fb5f1fea7b38a7c144e9f31dbef5908aefa31a0a87d67a169eed",
+    "stage1_integration/stage1/config.py": "dc6ec442d0d3c73fb6c4d4dfcf09b571b069dcda51b6390db0ec426eaa367b93",
+    "stage1_integration/stage1/evaluate.py": "a727509e1dd68251b091b3fff3df18eb3fe32780196a230dadc378ec2688723f",
+    "stage1_integration/stage1/launch.py": "94c4a7822dcc8bd5886ee1db9167eaf0c85097adf73b476f12f864f15f27216b",
+    "stage1_integration/stage1/worker.py": "0e1e8adb80b71baf390324804ae0b5c01647e244873ef921fa0fa1736dcf63c6",
+    "stage1_integration/tests/stage1/test_data.py": "cbcd37eb3403a58ef384b78a4cc5c834931547203984b450174c646d5baecf9c",
+    "tests/test_stage1_heldout.py": "aebd7399f433f7545369864ccbb27c4e5dac849bb774cf05c44044fcb6d98083",
+    "tests/test_stage1_multigpu_config.py": "e146c446038a09b1001c7f3f61f827dd06852b009c0ca0acd8dd6af4b7202148"
+  },
+  "deleted": [
+    "configs/stage1_panda.yaml"
+  ],
+  "formal_training_started": false
+}
