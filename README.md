@@ -63,6 +63,8 @@ D405 `observation.images.wrist` → `base_0_rgb`，图像掩码 `[true,false,fal
 
 RTC 解决执行队列与推理延迟，因此 **Stage 1 不需要 RTC，但 Stage 2 rollout 就要开启最终部署使用的 RTC**，不能等 RL 结束后才换入不同执行语义。本项目的 queue-aware actor/critic、延迟 transition assembler 和 RTC 组合是本地集成扩展，不宣称是上游完整复现。
 
+Stage-2 学习标量已对齐固定 RLinf 示例：actor/critic LR=3e-4、batch=256、Q/BC 权重=0.1/5、reference dropout=0.5、梯度裁剪=10。gamma=0.99、AC 结构、队列状态与更新调度仍保持本地版本。详细来源、差异理由及测试见 [参数与结构审计](docs/RLINF_PARAMETER_AUDIT.md)。改变训练参数后请用新训练目录，resume 会拒绝参数不一致，防止旧优化器恢复旧学习率。
+
 ### 人工评分与探索
 
 | 键/选项 | 行为 |

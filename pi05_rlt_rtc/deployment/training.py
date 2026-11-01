@@ -11,6 +11,7 @@ from pi05_rlt_rtc.deployment.runtime import config_from_args, make_backend, writ
 from pi05_rlt_rtc.learning.actor import QueueAwareRLTActor
 from pi05_rlt_rtc.learning.checkpoint import PolicyBundle, state_dict_sha256
 from pi05_rlt_rtc.learning.critic import TwinQWithTargets
+from pi05_rlt_rtc.learning.defaults import stage2_settings
 from pi05_rlt_rtc.learning.losses import actor_loss, bc_warmup_loss, build_transition_batch, critic_loss
 from pi05_rlt_rtc.learning.serialization import atomic_torch_save
 
@@ -18,35 +19,36 @@ from pi05_rlt_rtc.learning.serialization import atomic_torch_save
 class QueueLearner:
     def __init__(self, cfg, spec, *, device, seed):
         self.cfg, self.spec, self.device = cfg, spec, device
-        self.settings = cfg.raw.get("training", {})
+        self.settings = stage2_settings(cfg.raw.get("training", {}))
         torch.manual_seed(seed)
         self.actor = QueueAwareRLTActor(spec, fixed_std=self.settings.get("exploration_std", .002)).to(device)
         self.critic = TwinQWithTargets(sum(d for _, d in spec.critic_state_layout()), spec.chunk * 8).to(device)
-        self.actor_opt = torch.optim.Adam(self.actor.parameters(), lr=self.settings.get("actor_lr", 1e-4))
-        self.critic_opt = torch.optim.Adam(self.critic.online.parameters(), lr=self.settings.get("critic_lr", 3e-4))
+        self.actor_opt = torch.optim.Adam(self.actor.parameters(), lr=self.settings["actor_lr"])
+        self.critic_opt = torch.optim.Adam(self.critic.online.parameters(), lr=self.settings["critic_lr"])
         self.rng = np.random.default_rng(seed)
         self.torch_rng = torch.Generator(device=device).manual_seed(seed)
         self.counts = {"warmup_updates": 0, "updates": 0, "rounds": 0}
         self.metrics = []
 
     def _batch(self, replay):
-        return build_transition_batch(replay.sample(self.settings.get("batch_size", 32), generator=self.rng),
+        return build_transition_batch(replay.sample(self.settings["batch_size"], generator=self.rng),
                                       self.spec, contract=self.cfg.contract, device=self.device)
 
     @staticmethod
-    def _step(loss, optimizer, params):
+    def _step(loss, optimizer, params, *, clip_grad):
         if not torch.isfinite(loss):
             raise ContractError("nonfinite learner loss; refusing to save/deploy an invalid actor")
         optimizer.zero_grad(set_to_none=True)
         loss.backward()
-        norm = torch.nn.utils.clip_grad_norm_(params, 1., error_if_nonfinite=True)
+        norm = torch.nn.utils.clip_grad_norm_(params, clip_grad, error_if_nonfinite=True)
         optimizer.step()
         return float(loss.detach()), float(norm)
 
     def warmup(self, replay, count):
         for _ in range(count):
             loss, _ = bc_warmup_loss(self.actor, self._batch(replay))
-            value, norm = self._step(loss, self.actor_opt, self.actor.parameters())
+            value, norm = self._step(loss, self.actor_opt, self.actor.parameters(),
+                                     clip_grad=self.settings["actor_clip_grad"])
             self.metrics.append({"bc_loss": value, "actor_grad_norm": norm})
             self.counts["warmup_updates"] += 1
 
@@ -54,11 +56,13 @@ class QueueLearner:
         for _ in range(count):
             batch = self._batch(replay)
             qloss, _ = critic_loss(self.critic, self.actor, batch, generator=self.torch_rng)
-            qvalue, _ = self._step(qloss, self.critic_opt, self.critic.online.parameters())
+            qvalue, _ = self._step(qloss, self.critic_opt, self.critic.online.parameters(),
+                                   clip_grad=self.settings["critic_clip_grad"])
             loss, _ = actor_loss(self.actor, self.critic, batch,
-                lambda_q=self.settings.get("lambda_q", .1), lambda_bc=self.settings.get("lambda_bc", 1.),
-                reference_dropout_prob=self.settings.get("reference_dropout", .1), generator=self.torch_rng)
-            avalue, _ = self._step(loss, self.actor_opt, self.actor.parameters())
+                lambda_q=self.settings["lambda_q"], lambda_bc=self.settings["lambda_bc"],
+                reference_dropout_prob=self.settings["reference_dropout"], generator=self.torch_rng)
+            avalue, _ = self._step(loss, self.actor_opt, self.actor.parameters(),
+                                     clip_grad=self.settings["actor_clip_grad"])
             self.critic.soft_update(self.settings.get("polyak_tau", .005))
             self.metrics.append({"actor_loss": avalue, "critic_loss": qvalue})
             self.counts["updates"] += 1
@@ -139,6 +143,8 @@ def train(args, *, warmup_only=False):
         learner.actor.load_state_dict(bundle.actor_state)
         learner.critic.load_state_dict(bundle.critic_state)
         state = torch.load(Path(resume) / "learner_state.pt", map_location=learner.device, weights_only=True)
+        if state.get("training_settings") != learner.settings:
+            raise ContractError("resume training settings changed; start a new run for a new baseline")
         if state["policy_version_id"] != bundle.policy_version_id:
             raise ContractError("resume optimizer/policy mismatch")
         learner.actor_opt.load_state_dict(state["actor_optimizer"])

@@ -82,8 +82,8 @@ learning:
   base_loss_family: "rlt_ac"
   actor_precision: "fp32"
   critic_precision: "fp32"
-  actor_learning_rate: 0.0001
-  critic_learning_rate: 0.0001
+  actor_learning_rate: 0.0003
+  critic_learning_rate: 0.0003
   gamma_per_control_tick: 0.99
   target_ema_tau: 0.005
   entropy_weight: 0.0
@@ -91,7 +91,9 @@ learning:
   reference_dropout_probability: 0.5
   require_bc_warmup_before_actor_takeover: true
   bc_compares_deployed_bounded_actions: true
-  bc_q_weight_schedule: "explicitly_select_after_baseline_audit"
+  bc_q_weight_schedule: "constant_rlinf_q0.1_bc5"
+  actor_clip_grad: 10.0
+  critic_clip_grad: 10.0
   total_updates: null              # 根据资源与真实数据预算填写
   replay_capacity: null
   save_replay_for_resume: true

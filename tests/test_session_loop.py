@@ -117,3 +117,20 @@ def test_late_handoff_without_any_new_plan_is_not_learning_data(episode_setup,tm
     annotation=json.loads((out/'label/annotation.json').read_text())
     assert not annotation['eligible']
     assert annotation['reason']=='no_learnable_critical_transition'
+
+
+def test_resume_rejects_changed_learning_settings(episode_setup, tmp_path, monkeypatch):
+    from pi05_rlt_rtc.contracts.errors import ContractError
+    cfg, toy, backend, metadata = episode_setup
+    root = tmp_path / 'session'
+    session.run_episode(cfg, backend, metadata, None, None, Keys({5:['b'],30:['c']}),
+                        root/'episodes'/'000001', seed=1)
+    saved = session.update_round(cfg, root, seed=1, device='cpu', mock=True)
+    assert saved is not None
+    session.run_episode(cfg, backend, metadata, None, None, Keys({5:['b'],30:['a']}),
+                        root/'episodes'/'000002', seed=2)
+    changed = dataclasses.replace(cfg, raw={**cfg.raw,
+        'training': {**cfg.raw['training'], 'lambda_bc': 2.5}})
+    monkeypatch.setattr(training, 'config_from_args', lambda args: changed)
+    with pytest.raises(ContractError, match='resume training settings changed'):
+        session.update_round(changed, root, seed=1, device='cpu', mock=True)
