@@ -28,12 +28,6 @@ from pi05_rlt_rtc.evaluation.toy_env import ToyDelayedControlEnv, ToyEnvConfig
 from pi05_rlt_rtc.learning.actor import QueueAwareRLTActor
 from pi05_rlt_rtc.learning.checkpoint import PolicyBundle, state_dict_sha256
 from pi05_rlt_rtc.learning.critic import TwinQWithTargets
-from pi05_rlt_rtc.learning.losses import (
-    actor_loss,
-    bc_warmup_loss,
-    build_transition_batch,
-    critic_loss,
-)
 from pi05_rlt_rtc.learning.planning_state import (
     PlanningState,
     PlanningStateSpec,
@@ -430,64 +424,29 @@ def train_toy_actor_critic(
     gamma: float = 0.9,
     seed: int = 0,
 ) -> tuple[QueueAwareRLTActor, TwinQWithTargets, ToyTrainingReport]:
-    torch.manual_seed(seed)
+    # Exercise the production architecture/cadence instead of a second learner.
+    # Toy-specific optimization settings remain explicit fixture overrides.
+    from types import SimpleNamespace
+    from pi05_rlt_rtc.deployment.training import QueueLearner
     spec = collected.encoder.spec
     contract = collected.encoder.contract
-    actor = QueueAwareRLTActor(spec, hidden_dims=(64, 64), reference_hidden_dims=(32,))
-    critic = TwinQWithTargets(
-        sum(d for _, d in spec.critic_state_layout()), spec.chunk * spec.env_action_dim, hidden_dims=(64, 64)
-    )
-    actor_opt = torch.optim.Adam(actor.parameters(), lr=actor_lr)
-    critic_opt = torch.optim.Adam(critic.online.parameters(), lr=critic_lr)
-    generator = np.random.default_rng(seed)
-    torch_gen = torch.Generator().manual_seed(seed)
-
     learnable = collected.replay.learnable_transitions()
     if len(learnable) < 2:
         raise ContractError(
             f"toy collection produced only {len(learnable)} learnable transitions; "
             "the queue/assembler wiring is wrong, not the optimizer"
         )
-
-    warmup_losses: list[float] = []
-    for _ in range(warmup_updates):
-        batch = build_transition_batch(
-            collected.replay.sample(batch_size, generator=generator), spec, contract=contract
-        )
-        loss, _ = bc_warmup_loss(actor, batch)
-        actor_opt.zero_grad(set_to_none=True)
-        loss.backward()
-        actor_opt.step()
-        warmup_losses.append(float(loss.detach().item()))
-
-    critic_losses: list[float] = []
-    actor_losses: list[float] = []
-    for i in range(updates):
-        batch = build_transition_batch(
-            collected.replay.sample(batch_size, generator=generator), spec, contract=contract
-        )
-        loss, _ = critic_loss(
-            critic, actor, batch, generator=torch_gen if i % 2 == 0 else None
-        )
-        critic_opt.zero_grad(set_to_none=True)
-        loss.backward()
-        critic_opt.step()
-        critic.soft_update(0.05)
-        critic_losses.append(float(loss.detach().item()))
-
-        a_loss, _ = actor_loss(
-            actor,
-            critic,
-            batch,
-            lambda_q=lambda_q,
-            lambda_bc=lambda_bc,
-            reference_dropout_prob=reference_dropout,
-            generator=torch_gen,
-        )
-        actor_opt.zero_grad(set_to_none=True)
-        a_loss.backward()
-        actor_opt.step()
-        actor_losses.append(float(a_loss.detach().item()))
+    cfg = SimpleNamespace(contract=contract, raw={"training": {
+        "batch_size": batch_size, "actor_lr": actor_lr, "critic_lr": critic_lr,
+        "lambda_q": lambda_q, "lambda_bc": lambda_bc,
+        "reference_dropout": reference_dropout, "polyak_tau": .05}})
+    learner = QueueLearner(cfg, spec, device="cpu", seed=seed)
+    learner.warmup(collected.replay, warmup_updates)
+    learner.update(collected.replay, updates)
+    actor, critic = learner.actor, learner.critic
+    warmup_losses = [m["bc_loss"] for m in learner.metrics if "bc_loss" in m]
+    critic_losses = [m["critic_loss"] for m in learner.metrics if "critic_loss" in m]
+    actor_losses = [m["actor_loss"] for m in learner.metrics if "actor_loss" in m]
 
     metrics = {
         "warmup_loss_start": warmup_losses[0] if warmup_losses else float("nan"),
@@ -644,7 +603,6 @@ def export_toy_bundle(
         policy_version_id=TOY_POLICY_VERSION_ID,
         training_counts={"toy": 1},
         actor_hidden_dims=tuple(actor.hidden_dims),
-        actor_reference_hidden_dims=tuple(actor.reference_hidden_dims),
         codec_name=build.codec.name,
         extra={"mock": True, "warning": "toy artifact; not a trained robot policy",
                "rtc_mode": build.backend.mode, "num_denoising_steps": build.backend.dispatcher.num_steps,

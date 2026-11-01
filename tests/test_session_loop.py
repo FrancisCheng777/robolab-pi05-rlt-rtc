@@ -63,22 +63,33 @@ def test_critical_phase_reward_terminal_partial_chunk_and_no_entry(episode_setup
 def test_episode_round_resume_is_once_and_keeps_history(episode_setup,tmp_path):
     cfg,toy,backend,metadata=episode_setup
     root=tmp_path/'session'
-    for index,outcome in [(1,'c'),(2,'a')]:
+    for index,outcome in [(1,'c'),(2,'a'),(3,'a'),(4,'c'),(5,'c')]:
         session.run_episode(cfg,backend,metadata,None,None,Keys({5:['b'],30:[outcome]}),
                             root/'episodes'/f'{index:06d}',seed=index)
         saved=session.update_round(cfg,root,seed=1,device='cpu',mock=True)
         bundle=PolicyBundle.load(saved/'policy.pt')
         assert bundle.training_counts['rounds']==index
         assert bundle.training_counts['warmup_updates']==1
+        assert bundle.training_counts['updates']==index
+        assert bundle.training_counts['actor_updates']==(index+3)//4
+        import torch
+        state=torch.load(saved/'learner_state.pt',weights_only=True)
+        assert {int(s['step']) for s in state['actor_optimizer']['state'].values()}=={1+(index+3)//4}
+        assert {int(s['step']) for s in state['critic_optimizer']['state'].values()}=={index}
+        if index in (2,3,4):
+            assert bundle.actor_state_sha256==previous_digest
+        elif index==5:
+            assert bundle.actor_state_sha256!=previous_digest
+        previous_digest=bundle.actor_state_sha256
         digest=bundle.actor_state_sha256
         assert session.update_round(cfg,root,seed=1,device='cpu',mock=True)==saved
         assert PolicyBundle.load(saved/'policy.pt').actor_state_sha256==digest
         session.bind_policy(backend,metadata,saved,cfg,mode='train')
         assert not backend.deterministic
     replay=ReplayBuffer.load(saved/'replay.pt')
-    assert len({t.planning_state.ids.episode_id for t in replay.learnable_transitions()})==2
+    assert len({t.planning_state.ids.episode_id for t in replay.learnable_transitions()})==5
     sources=json.loads((saved.parent/'training_sources.json').read_text())
-    assert len(sources['trial_ids'])==2
+    assert len(sources['trial_ids'])==5
     session.bind_policy(backend,metadata,saved,cfg,mode='eval')
     assert backend.deterministic
 

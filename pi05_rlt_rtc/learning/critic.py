@@ -1,7 +1,7 @@
 """Twin-Q critic over the full queue-aware planning state ``X`` and candidate ``U``.
 
 The critic consumes the complete state including the current full reference
-(guide section 11.3); only the *actor's* reference branch is subject to
+(guide section 11.3); only the *actor's* reference input is subject to
 dropout.  Target networks follow the upstream ``rlt_ac`` recipe: min of twin
 Q, EMA target update, no entropy term, no CrossQ/CQL variants in the first
 implementation.
@@ -13,7 +13,22 @@ import torch
 import torch.nn as nn
 
 from pi05_rlt_rtc.contracts.errors import ContractError
-from pi05_rlt_rtc.learning.actor import _mlp
+def _q_head(dims: list[int]) -> nn.Sequential:
+    """RLinf c70606f QHead: Linear/LayerNorm/Tanh, then a linear output."""
+    layers = []
+    for i, (in_dim, out_dim) in enumerate(zip(dims, dims[1:])):
+        layers.append(nn.Linear(in_dim, out_dim))
+        if i < len(dims) - 2:
+            layers.extend([nn.LayerNorm(out_dim), nn.Tanh()])
+    net = nn.Sequential(*layers)
+    for layer in net:
+        if isinstance(layer, nn.Linear):
+            if layer is net[-1]:
+                nn.init.normal_(layer.weight, mean=0., std=.02)
+            else:
+                nn.init.xavier_uniform_(layer.weight, gain=nn.init.calculate_gain("tanh"))
+            nn.init.zeros_(layer.bias)
+    return net
 
 
 class TwinQCritic(nn.Module):
@@ -22,7 +37,7 @@ class TwinQCritic(nn.Module):
         state_dim: int,
         action_dim: int,
         *,
-        hidden_dims: tuple[int, ...] = (256, 256),
+        hidden_dims: tuple[int, ...] = (256, 256, 256),
         num_q_heads: int = 2,
     ) -> None:
         super().__init__()
@@ -34,8 +49,9 @@ class TwinQCritic(nn.Module):
         self.state_dim = int(state_dim)
         self.action_dim = int(action_dim)
         self.num_q_heads = int(num_q_heads)
+        self.hidden_dims = tuple(hidden_dims)
         self.heads = nn.ModuleList(
-            [_mlp([state_dim + action_dim, *hidden_dims, 1]) for _ in range(num_q_heads)]
+            [_q_head([state_dim + action_dim, *hidden_dims, 1]) for _ in range(num_q_heads)]
         )
 
     def forward(self, state: torch.Tensor, actions: torch.Tensor) -> torch.Tensor:
@@ -63,7 +79,7 @@ class TwinQCritic(nn.Module):
 class TwinQWithTargets(nn.Module):
     """Online twin-Q plus its EMA target twin-Q."""
 
-    def __init__(self, state_dim: int, action_dim: int, *, hidden_dims: tuple[int, ...] = (256, 256)) -> None:
+    def __init__(self, state_dim: int, action_dim: int, *, hidden_dims: tuple[int, ...] = (256, 256, 256)) -> None:
         super().__init__()
         self.online = TwinQCritic(state_dim, action_dim, hidden_dims=hidden_dims)
         self.target = TwinQCritic(state_dim, action_dim, hidden_dims=hidden_dims)

@@ -493,7 +493,7 @@ def cmd_export_deployment(args: argparse.Namespace) -> int:
         "runtime_contract": bundle.extra.get("runtime_contract"),
         "fingerprint": bundle.extra.get("fingerprint"),
         "actor_hidden_dims": list(bundle.actor_hidden_dims),
-        "actor_reference_hidden_dims": list(bundle.actor_reference_hidden_dims),
+        "ac_architecture": bundle.ac_architecture,
         "rtc_mode": bundle.extra.get("rtc_mode"),
         "num_denoising_steps": bundle.extra.get("num_denoising_steps"),
         "control_frequency_hz": bundle.extra.get("control_frequency_hz"),
@@ -640,7 +640,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--rounds", type=int, default=3)
     p.add_argument("--toy", action="store_true")
     p.add_argument("--ticks", type=int, default=160)
-    p.add_argument("--updates", type=int, default=150)
+    p.add_argument("--updates", type=int, default=150,
+                   help="critic iterations; actor uses the configured critic_actor_ratio (default 4)")
     p.add_argument("--warmup-updates", type=int, default=50)
     p.add_argument("--eval-episodes", type=int, default=5)
     p.add_argument("--out", required=True)

@@ -1,6 +1,6 @@
 # Stage-2 参数与结构对照（2026-11-01）
 
-本次仅对齐可直接映射的 RLinf 学习标量。gamma、网络结构、规划状态、更新调度和奖励定义均未改动。因此这是带本地 RTC 扩展的配置对齐，不能称为完整复现 RLinf，也不代表这些参数已在本任务验证最优。
+当前已对齐 RLinf 学习标量、AC 主体结构与 actor:critic=1:4 更新比例。保留队列输入、gamma=0.99、episode 采样调度和奖励定义。因此仍不能称为完整复现 RLinf，也不代表这些参数已在本任务验证最优。
 
 ## 固定参考来源
 
@@ -21,7 +21,7 @@
 
 critic LR=3e-4、Q 权重=0.1、tau=0.005、tanh 前探索 std=0.002 原已一致，保持不变。设计 YAML 的旧 critic LR=1e-4 也同步更正为运行值，避免文档误导。主运行 YAML 与仓库内 Stage-1 集成目录所附运行 YAML 同步。
 
-集中默认值位于 `pi05_rlt_rtc/learning/defaults.py`，避免配置缺项时落回旧参数。新增训练参数校验，以及恢复时的参数一致性检查：旧 checkpoint 的 optimizer 含旧 LR，不能悄悄覆盖新配置。改变配置后应使用新训练目录；本次没有实现旧优化器的自动迁移。网络 checkpoint 格式未改。
+集中默认值位于 `pi05_rlt_rtc/learning/defaults.py`，避免配置缺项时落回旧参数。新增训练参数校验，以及恢复时的参数一致性检查：旧 checkpoint 的 optimizer 含旧 LR，不能悄悄覆盖新配置。改变配置后应使用新训练目录；本次没有实现旧优化器的自动迁移。后续结构恢复新增 `ac_architecture=rlinf_mlp_queue_v2`；缺少此标识的旧两层 AC checkpoint 明确拒绝加载。新训练目录从新 AC 开始，Stage-1 π0.5/RLT checkpoint 可继续使用。
 
 gamma 保持 **0.99 / control tick**，本地 TD target 使用真实持续时间的 `gamma^K`。官方配置为 0.96；在折扣时间单位和调度不同的情况下，不能只比较两个小数。本次没有调整折扣或奖励：本地仍是成功 terminal=1、失败/中间=0。
 
@@ -29,17 +29,18 @@ gamma 保持 **0.99 / control tick**，本地 TD target 使用真实持续时间
 
 主要指 **Stage-2 AC 小网络**：actor 生成动作 chunk，critic 评估动作；不是重新设计 π0.5 视觉/语言/动作主干。
 
-| 项目 | 固定 RLinf 实现 | 本地已有实现（本次未改） |
+| 项目 | 固定 RLinf 实现 | 当前本地实现 |
 |---|---|---|
-| actor 输入 | z_rl、本体状态、参考动作 chunk 拼接 | 规划状态分支与参考动作分支分别投影，再拼接 |
-| actor 隐藏层 | 256→256→256，每层 Tanh | 状态分支 256→256，中间 SiLU；参考分支单层 128 线性投影；拼接后线性输出，再 tanh |
-| actor 初始化 | layer_init、输出层小增益 | PyTorch Linear 默认初始化，输出 bias 置零 |
-| critic | twin Q；每个 Q 三层 256，Tanh、LayerNorm、专门初始化 | twin Q；每个 Q 两层 256，SiLU，无 LayerNorm，默认 Linear 初始化 |
-| critic 输入 | z_rl、本体状态、候选动作 chunk | 完整规划状态、当前完整参考计划及 mask、候选动作 chunk |
+| actor 输入 | z_rl、本体状态、参考动作 chunk | 保留规划状态扩展，与参考动作拼接；取消独立 128 维分支 |
+| actor 隐藏层 | 256→256→256，每层 Tanh | 相同；reference dropout 在拼接前只作用于参考输入 |
+| actor 初始化 | 正交初始化 gain=√2，输出 gain=0.01√2，bias=0 | 相同 |
+| critic | twin Q；每个 Q 三层 256，Linear→LayerNorm→Tanh，最后线性输出 | 相同 |
+| critic 初始化 | 隐藏层 Xavier uniform，gain 为 Tanh gain；输出 Normal(0,0.02)，bias=0 | 相同 |
+| critic 输入 | z_rl、本体状态、候选动作 chunk | 保留完整规划状态、当前完整参考计划及 mask、候选动作 chunk |
 
-actor 实现见 `learning/actor.py`，critic 见 `learning/critic.py`（均相对于 `pi05_rlt_rtc/`）。保留了双 Q、target EMA、min-Q bootstrap、tanh 前固定探索噪声等算法要素，但保留算法要素不等于结构一致。
+actor 实现见 `learning/actor.py`，critic 见 `learning/critic.py`（均相对于 `pi05_rlt_rtc/`）。保留双 Q、target EMA、min-Q bootstrap、tanh 前固定探索噪声和现有损失。本地控制动作维度及输入布局不同，因此不会直接加载官方 AC 权重。
 
-**动机与证据界限：** 独立 reference 分支便于只遮蔽参考动作而保留队列信息；规划状态输入用于描述延迟执行。但这两点都不要求把官方三层改为两层、Tanh 改为 SiLU，或删除 LayerNorm。现有仓库没有消融结果证明这些网络选择优于官方；它们是本地实现选择，不能称为 RLinf / PI 推荐，也不能称为 RTC 必需。只增加输入特征也可以继续使用官方 MLP 主体。
+此前本地使用两层 256/SiLU，actor 独立参考分支 128 维，critic 无 LayerNorm，主要采用 Linear 默认初始化。原有动机是隔离 reference dropout 和表达队列状态，但这些功能并不要求上述结构选择；没有消融结果支持它们。因此按用户确认恢复官方主体，仅保留有明确功能需求的输入扩展。
 
 Stage-1 则沿用 π0.5 + RLT 模块体系。核对 provenance 哈希，`openpi/pi0_config.py`、`openpi/rlt_config.py` 与固定上游一致；RLT 配置保留 2048 维、2 层、8 heads。直接对比上游 `rlt_token_transformer.py` blob `bed210d2272f4368ec67006f31c5e140b373c29f`，本地增加的是 encoder/decoder 的 non-reentrant gradient checkpointing 开关与调用，不改变层数、注意力或可训练参数结构。Stage-1 仍有 full-SFT、精度/梯度与显存工程补丁，见 `stage1_integration/stage1/patches/rlinf-full-sft.patch`；不能笼统说上游代码完全没改。本次未修改任何 Stage-1 模型文件。
 
@@ -57,16 +58,18 @@ Stage-1 则沿用 π0.5 + RLT 模块体系。核对 provenance 哈希，`openpi/
 
 理由是：即使图像、本体状态相同，队列里已有的动作不同，下一段实际执行也可能不同。显式输入这些记忆，是为了减少遗漏执行状态造成的歧义。**这是本地延迟控制的建模假设**，不是官方 RLT 要求，也没有证明它足以恢复 Markov 性或一定提升成功率。官方 AC 输入没有这些显式队列字段。延迟 transition 的奖励窗口、执行确认和实际持续时间也与此设计配合；本次全部保持原样。
 
-## 更新调度为何不同
+## 已恢复的更新比例与保留的 episode 调度
 
-| 项目 | 本地现状（本次未改） | 理由与不足 |
+| 项目 | 当前本地设置 | 理由与不足 |
 |---|---|---|
 | 采样与学习 | rollout → confirmed hold → 人工标签 → GPU 更新 → 下一 episode | 避免单 4090 上 VLA/RTC 推理与 learner 同时争抢 GPU；是部署取舍，不是 PI/RLinf 算法要求 |
-| actor:critic 更新比 | 1:1；官方配置 1:4 | 本地简化；没有证据证明更好。属于用户要求暂不动的更新调度 |
+| actor:critic 更新比 | 已由 1:1 恢复官方 1:4 | 全局零起点 update_step % 4 == 0 时更新 actor；跨调用和 resume 连续 |
 | 启动门槛 | 5 个有效 episode 且 32 条可学习 transition | 工程起点，没有官方实验支持这两个具体值 |
 | BC warmup | 100 次 | 先模仿 teacher 再交给 AC 的本地流程；具体次数无消融支持 |
-| 每轮 AC 更新 | 初次与后续每个有效 episode 各 100 次 | 便于交互；不等于官方 update_epoch=8，统计单位不同 |
+| 每轮 AC 更新 | 初次与后续每个有效 episode 各 100 次 critic、25 次 actor | 维持每轮 100 个 critic 迭代；不等于官方 update_epoch=8，统计单位不同 |
 | replay 容量 | 10000 条 transition | 官方 cache/sample window=200 对应其 rollout 存储单位，不能直接照抄为 200 条本地 transition |
+
+更新计数 `updates` 表示 critic 迭代，`actor_updates` 表示 AC actor 更新，`warmup_updates` 单独记录 BC。target Q 每个 critic 迭代都 EMA 更新，actor 跳过的迭代不会伪造 actor loss。
 
 官方 `train_actor_steps=2` 是 replay 就绪门槛的一部分，不能解读为每轮只做两次 actor 更新。batch 调成 256 后，本地仍允许从不足 256 条 transition 的池中有放回采样；因此早期 batch 内会重复样本，256 不代表 256 条独立经验。由于启动门槛与调度明确要求不动，本次保留这一行为。
 
@@ -76,9 +79,11 @@ Stage-1 则沿用 π0.5 + RLT 模块体系。核对 provenance 哈希，`openpi/
 
 在 4090 主机的 `/home/heinrich/robolab-pi05-rlt-rtc`，使用 `.venv-runtime/bin/python`、PyTorch 2.7.1+cu128：
 
-- 针对性测试：25 passed（参数实际进入 learner、梯度裁剪量级、跨调用 actor/critic 1:1 更新、resume 参数不一致拒绝、session/platform 集成）。
-- 完整 `OMP_NUM_THREADS=1 .venv-runtime/bin/python -m pytest tests -q --tb=short`：**193 passed, 19 skipped**，30.88 秒。
-- 日志：`reports/official_params_20261101/{focused,full}.log`；修改前备份：同目录 `before.tgz`。
-- `git diff --check` 与 Python 语法检查通过。
+- 先运行新回归测试，确认旧网络的上游数值对照、旧 1:1 cadence 和缺失结构版本检查失败；之后实施修改。
+- 与固定上游模块直接数值对照：actor 与 critic 在相同随机种子下初始化/前向输出一致，使用扩展输入维度；reference dropout 不改变队列字段。
+- 连续五个 episode 的保存/恢复检查：actor 更新数为 1/1/1/1/2，critic 为 1/2/3/4/5；BC warmup 仅首轮执行。验证 target Q 在不更新 actor 时仍更新。
+- 保存/加载后 actor、critic 输出一致；旧 AC 架构版本明确拒绝。
+- Toy 训练复用正式 QueueLearner，移除独立两层/1:1 更新循环；保留 fixture 显式优化参数。原测试的随机动作 Q 排序错误地包含终止 next_state 的补零，并要求 teacher-only replay 对未见动作排序；替换为全部实际 replay 的 TD 误差和终止状态/动作的真实回报误差检查，仍使用 <1 门槛，保留 BC/critic 下降与闭环成功率门槛。
+- 完整回归：`OMP_NUM_THREADS=1 .venv-runtime/bin/python -m pytest tests -q --tb=short -rs`，**198 passed, 19 skipped**，42.51 秒。跳过项依赖真实数据、权重或未配置的 bridge 测试环境。日志见 `reports/official_ac_20261101/full.log`；修改前备份：同目录 `before.tgz`。
 
 以上是代码与 mock 回归，不是插入成功率、真实训练收敛、完整模型 RTC 延迟或真机安全验收。本次没有启动机器人或训练真实任务模型。

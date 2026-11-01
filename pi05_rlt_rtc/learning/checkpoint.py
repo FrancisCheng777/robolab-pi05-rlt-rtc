@@ -26,6 +26,8 @@ from pi05_rlt_rtc.learning.planning_state import PlanningStateSpec
 from pi05_rlt_rtc.learning.serialization import atomic_torch_save
 
 
+AC_ARCHITECTURE = "rlinf_mlp_queue_v2"
+
 def state_dict_sha256(state_dict: dict[str, torch.Tensor]) -> str:
     digest = hashlib.sha256()
     for key in sorted(state_dict):
@@ -45,8 +47,8 @@ class PolicyBundle:
     norm_stats_sha256: str
     policy_version_id: str
     training_counts: dict[str, int] = dataclasses.field(default_factory=dict)
-    actor_hidden_dims: tuple[int, ...] = (256, 256)
-    actor_reference_hidden_dims: tuple[int, ...] = (128,)
+    actor_hidden_dims: tuple[int, ...] = (256, 256, 256)
+    ac_architecture: str = AC_ARCHITECTURE
     critic_hidden_dims: tuple[int, ...] | None = None
     schema_version: str = SCHEMA_VERSION
     planning_state_version: str = PLANNING_STATE_VERSION
@@ -55,6 +57,8 @@ class PolicyBundle:
     extra: dict[str, Any] = dataclasses.field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        if self.ac_architecture != AC_ARCHITECTURE:
+            raise ContractError("unsupported AC architecture; start a new Stage-2 run")
         if self.schema_version != SCHEMA_VERSION:
             raise ContractError("PolicyBundle schema version mismatch")
         if self.planning_state_version != PLANNING_STATE_VERSION:
@@ -64,9 +68,9 @@ class PolicyBundle:
         if self.contract.delay > self.spec.max_delay:
             raise ContractError("execution delay exceeds the saved planning-state capacity")
         if self.critic_state is not None and self.critic_hidden_dims is None:
-            # Recover the exact architecture from older bundles, never assume 256.
+            # Infer custom test widths from linear layers only; LayerNorm also has weights.
             weights = [(int(key.split(".")[-2]), value) for key, value in self.critic_state.items()
-                       if key.startswith("online.heads.0.") and key.endswith(".weight")]
+                       if key.startswith("online.heads.0.") and key.endswith(".weight") and value.ndim == 2]
             self.critic_hidden_dims = tuple(value.shape[0] for _, value in sorted(weights)[:-1])
 
     @property
@@ -82,7 +86,7 @@ class PolicyBundle:
             "spec": dataclasses.asdict(self.spec),
             "contract": dataclasses.asdict(self.contract),
             "actor_hidden_dims": list(self.actor_hidden_dims),
-            "actor_reference_hidden_dims": list(self.actor_reference_hidden_dims),
+            "ac_architecture": self.ac_architecture,
             "critic_hidden_dims": None if self.critic_hidden_dims is None else list(self.critic_hidden_dims),
             "actor_state": {k: v.detach().cpu() for k, v in self.actor_state.items()},
             "critic_state": (
@@ -114,6 +118,8 @@ class PolicyBundle:
         if not path.exists():
             raise FileNotFoundError(f"policy bundle not found: {path}")
         payload = torch.load(path, map_location="cpu", weights_only=True)
+        if payload.get("ac_architecture") != AC_ARCHITECTURE:
+            raise ContractError("unsupported or legacy AC architecture; start a new Stage-2 run")
         if payload.get("actor_state_sha256") != state_dict_sha256(payload["actor_state"]):
             raise ContractError(
                 "actor state hash mismatch inside checkpoint; refusing to load a "
@@ -142,8 +148,8 @@ class PolicyBundle:
             norm_stats_sha256=payload["norm_stats_sha256"],
             policy_version_id=payload["policy_version_id"],
             training_counts=dict(payload.get("training_counts", {})),
-            actor_hidden_dims=tuple(payload.get("actor_hidden_dims", (256, 256))),
-            actor_reference_hidden_dims=tuple(payload.get("actor_reference_hidden_dims", (128,))),
+            actor_hidden_dims=tuple(payload["actor_hidden_dims"]),
+            ac_architecture=payload["ac_architecture"],
             critic_hidden_dims=None if payload.get("critic_hidden_dims") is None else tuple(payload["critic_hidden_dims"]),
             schema_version=payload["schema_version"],
             planning_state_version=payload["planning_state_version"],
@@ -156,7 +162,6 @@ class PolicyBundle:
         actor = QueueAwareRLTActor(
             self.spec,
             hidden_dims=self.actor_hidden_dims,
-            reference_hidden_dims=self.actor_reference_hidden_dims,
             fixed_std=self.extra.get("exploration_std", .002),
         )
         actor.load_state_dict(self.actor_state)
