@@ -68,7 +68,7 @@ def test_t19_save_reload_same_observation_same_noise(toy_build, tmp_path):
     torch.manual_seed(0)
     from pi05_rlt_rtc.learning.actor import QueueAwareRLTActor
 
-    actor = QueueAwareRLTActor(spec, hidden_dims=(32, 32), reference_hidden_dims=(16,))
+    actor = QueueAwareRLTActor(spec, hidden_dims=(32, 32))
     bundle = PolicyBundle(
         spec=spec,
         contract=toy_build.contract,
@@ -78,7 +78,6 @@ def test_t19_save_reload_same_observation_same_noise(toy_build, tmp_path):
         norm_stats_sha256="norm-v1",
         policy_version_id="policy-v1",
         actor_hidden_dims=(32, 32),
-        actor_reference_hidden_dims=(16,),
     )
     path = bundle.save(tmp_path / "actor.pt", include_critic=False)
 

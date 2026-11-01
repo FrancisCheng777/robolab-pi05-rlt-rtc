@@ -2,7 +2,7 @@
 
 Source: RLinf c70606f08cdca259b8dec03d4430926b5b8fac9d,
 examples/embodiment/config/realworld_rlt_stage2_ac_mlp.yaml.
-These align learning scalars, not the local queue-aware architecture or scheduler.
+These align learning scalars and AC update cadence; episode scheduling remains local.
 """
 import math
 
@@ -11,6 +11,7 @@ from pi05_rlt_rtc.contracts.errors import ConfigError
 
 RLINF_STAGE2_DEFAULTS = {
     "batch_size": 256,
+    "critic_actor_ratio": 4,
     "actor_lr": 3e-4,
     "critic_lr": 3e-4,
     "lambda_q": .1,
@@ -25,7 +26,7 @@ RLINF_STAGE2_DEFAULTS = {
 
 def stage2_settings(overrides):
     settings = {**RLINF_STAGE2_DEFAULTS, **overrides}
-    for key in ("batch_size",):
+    for key in ("batch_size", "critic_actor_ratio"):
         if type(settings[key]) is not int or settings[key] < 1:
             raise ConfigError(f"training.{key} must be a positive integer")
     for key in ("actor_lr", "critic_lr", "lambda_q", "lambda_bc",

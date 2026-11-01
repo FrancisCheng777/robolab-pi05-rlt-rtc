@@ -27,7 +27,7 @@ class QueueLearner:
         self.critic_opt = torch.optim.Adam(self.critic.online.parameters(), lr=self.settings["critic_lr"])
         self.rng = np.random.default_rng(seed)
         self.torch_rng = torch.Generator(device=device).manual_seed(seed)
-        self.counts = {"warmup_updates": 0, "updates": 0, "rounds": 0}
+        self.counts = {"warmup_updates": 0, "updates": 0, "actor_updates": 0, "rounds": 0}
         self.metrics = []
 
     def _batch(self, replay):
@@ -58,13 +58,18 @@ class QueueLearner:
             qloss, _ = critic_loss(self.critic, self.actor, batch, generator=self.torch_rng)
             qvalue, _ = self._step(qloss, self.critic_opt, self.critic.online.parameters(),
                                    clip_grad=self.settings["critic_clip_grad"])
-            loss, _ = actor_loss(self.actor, self.critic, batch,
-                lambda_q=self.settings["lambda_q"], lambda_bc=self.settings["lambda_bc"],
-                reference_dropout_prob=self.settings["reference_dropout"], generator=self.torch_rng)
-            avalue, _ = self._step(loss, self.actor_opt, self.actor.parameters(),
-                                     clip_grad=self.settings["actor_clip_grad"])
-            self.critic.soft_update(self.settings.get("polyak_tau", .005))
-            self.metrics.append({"actor_loss": avalue, "critic_loss": qvalue})
+            metrics = {"critic_loss": qvalue, "update_step": self.counts["updates"]}
+            # Match RLinf: zero-based global step, preserved across calls/resume.
+            if self.counts["updates"] % self.settings["critic_actor_ratio"] == 0:
+                loss, _ = actor_loss(self.actor, self.critic, batch,
+                    lambda_q=self.settings["lambda_q"], lambda_bc=self.settings["lambda_bc"],
+                    reference_dropout_prob=self.settings["reference_dropout"], generator=self.torch_rng)
+                avalue, _ = self._step(loss, self.actor_opt, self.actor.parameters(),
+                                      clip_grad=self.settings["actor_clip_grad"])
+                metrics["actor_loss"] = avalue
+                self.counts["actor_updates"] += 1
+            self.critic.soft_update(self.settings["polyak_tau"])
+            self.metrics.append(metrics)
             self.counts["updates"] += 1
 
     def save(self, directory, metadata, replay):
@@ -74,7 +79,7 @@ class QueueLearner:
             actor_state=self.actor.state_dict(), critic_state=self.critic.state_dict(),
             feature_version_id=metadata["feature_version_id"], norm_stats_sha256=metadata["norm_stats_sha256"],
             policy_version_id=policy_id, training_counts=dict(self.counts),
-            actor_hidden_dims=self.actor.hidden_dims, actor_reference_hidden_dims=self.actor.reference_hidden_dims,
+            actor_hidden_dims=self.actor.hidden_dims, critic_hidden_dims=self.critic.online.hidden_dims,
             codec_name="rlinf_openpi_joint_codec", extra={"mock": metadata.get("mock", False), "runtime_contract": self.cfg.wire_contract(),
                 "rtc_mode": self.cfg.rtc_mode, "num_denoising_steps": self.cfg.num_steps,
                 "exploration_std": self.actor.fixed_std, "control_frequency_hz": self.cfg.control_hz, "fingerprint": metadata["fingerprint"]})

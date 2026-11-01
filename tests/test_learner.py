@@ -144,7 +144,7 @@ def test_t53_reference_dropout_touches_only_actor_reference_branch():
 
     spec = PlanningStateSpec.from_contract(HorizonContract(10, 5, 2), z_dim=16)
     torch.manual_seed(0)
-    actor = QueueAwareRLTActor(spec, hidden_dims=(32,), reference_hidden_dims=(16,))
+    actor = QueueAwareRLTActor(spec, hidden_dims=(32,))
     state = torch.randn(4, sum(d for _, d in spec.actor_state_layout()))
     ref = torch.randn(4, spec.chunk * spec.env_action_dim)
     torch.manual_seed(1)
@@ -200,7 +200,7 @@ def test_t54_bc_warmup_compares_bounded_deployed_actions():
 
     spec = PlanningStateSpec.from_contract(HorizonContract(10, 5, 2), z_dim=16)
     torch.manual_seed(2)
-    actor = QueueAwareRLTActor(spec, hidden_dims=(32,), reference_hidden_dims=(16,))
+    actor = QueueAwareRLTActor(spec, hidden_dims=(32,))
     with torch.no_grad():
         actor.head.bias.fill_(8.0)  # raw logits far outside tanh bounds
     state = torch.randn(2, sum(d for _, d in spec.actor_state_layout()))
@@ -238,7 +238,7 @@ def test_t55_actor_gets_q_gradients_while_q_params_stay_frozen():
 
     spec = PlanningStateSpec.from_contract(HorizonContract(10, 5, 2), z_dim=16)
     torch.manual_seed(3)
-    actor = QueueAwareRLTActor(spec, hidden_dims=(32,), reference_hidden_dims=(16,))
+    actor = QueueAwareRLTActor(spec, hidden_dims=(32,))
     critic = TwinQWithTargets(
         sum(d for _, d in spec.critic_state_layout()), spec.chunk * spec.env_action_dim, hidden_dims=(32,)
     )
@@ -406,16 +406,18 @@ def test_t60_toy_delayed_control_learning_direction():
     assert evaluation.mean_final_abs_state < evaluation.random_mean_final_abs_state
     assert evaluation.mean_final_abs_state < 0.2
 
-    # analytic directional Q check on the trained critic: for states where the
-    # teacher action is not clipped, Q(x, a*) must exceed Q(x, random a).
-    from pi05_rlt_rtc.learning.losses import build_transition_batch
+    # Verify Q on observed state/action pairs. Terminal next_state is padding,
+    # and a teacher-only replay cannot justify rankings of unseen random actions.
+    from pi05_rlt_rtc.learning.losses import build_transition_batch, critic_loss
 
     transitions = collected.replay.learnable_transitions()
-    batch = build_transition_batch(transitions[:8], collected.encoder.spec, contract=build.contract)
-    state = batch.next_critic_state
-    best = -torch.clamp(state[:, 0:1], -1, 1).expand(-1, collected.encoder.spec.chunk * 8)
-    random_actions = torch.randn_like(best) * 0.5
+    batch = build_transition_batch(transitions, collected.encoder.spec, contract=build.contract)
     with torch.no_grad():
-        q_best = critic.online.q_min(state, best)
-        q_random = critic.online.q_min(state, random_actions)
-    assert float((q_best >= q_random).float().mean()) >= 0.6
+        td_loss, _ = critic_loss(critic, actor, batch,
+                                generator=torch.Generator().manual_seed(0))
+        terminal = batch.bootstrap_discount.squeeze(-1) == 0
+        assert terminal.any()
+        q_terminal = critic.online(batch.critic_state, batch.actions)[terminal]
+        terminal_error = (q_terminal - batch.reward_sum[terminal]).square().mean()
+    assert torch.isfinite(td_loss) and float(td_loss) < 1.0
+    assert torch.isfinite(terminal_error) and float(terminal_error) < 1.0

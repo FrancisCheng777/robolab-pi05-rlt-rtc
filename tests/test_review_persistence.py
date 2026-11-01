@@ -14,7 +14,7 @@ from pi05_rlt_rtc.learning.replay import ReplayBuffer
 @pytest.fixture
 def bundle(tmp_path):
     build = build_toy(z_dim=16)
-    actor = QueueAwareRLTActor(build.spec, hidden_dims=(16,), reference_hidden_dims=(8,))
+    actor = QueueAwareRLTActor(build.spec, hidden_dims=(16,))
     critic = TwinQWithTargets(sum(d for _, d in build.spec.critic_state_layout()), 40, hidden_dims=(12,))
     result = export_toy_bundle(build=build, actor=actor, critic=critic, out_dir=str(tmp_path / "source"))
     return result
@@ -25,6 +25,18 @@ def test_critic_architecture_survives_save_reload(bundle, tmp_path):
     restored = saved.build_critic()
     for key, value in restored.state_dict().items():
         assert torch.equal(value, bundle.critic_state[key])
+
+
+def test_actor_and_critic_outputs_survive_save_reload(bundle, tmp_path):
+    saved = PolicyBundle.load(bundle.save(tmp_path / "policy.pt"))
+    state = torch.randn(3, sum(d for _, d in bundle.spec.actor_state_layout()))
+    reference = torch.randn(3, bundle.spec.chunk * bundle.spec.env_action_dim)
+    actor = bundle.build_actor()
+    assert torch.equal(actor(state, reference).actions,
+                       saved.build_actor()(state, reference).actions)
+    qstate = torch.randn(3, sum(d for _, d in bundle.spec.critic_state_layout()))
+    assert torch.equal(bundle.build_critic().online(qstate, reference),
+                       saved.build_critic().online(qstate, reference))
 
 
 def test_cli_deployment_export_is_independently_loadable(bundle, tmp_path):

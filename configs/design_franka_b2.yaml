@@ -80,6 +80,8 @@ learning:
   actor_kind: "queue_aware_direct_chunk_mlp"  # 需要新增并注册
   critic_kind: "twin_q_augmented_planning_state"
   base_loss_family: "rlt_ac"
+  ac_architecture: "rlinf_mlp_queue_v2"
+  critic_actor_ratio: 4
   actor_precision: "fp32"
   critic_precision: "fp32"
   actor_learning_rate: 0.0003

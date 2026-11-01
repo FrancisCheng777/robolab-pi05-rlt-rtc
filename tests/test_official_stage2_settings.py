@@ -1,4 +1,4 @@
-"""Official optimizer scale with the existing local update schedule; CPU only."""
+"""Official optimizer scale and actor/critic cadence; CPU only."""
 from types import SimpleNamespace
 import copy
 import torch
@@ -22,17 +22,20 @@ def learner_and_replay():
     return QueueLearner(cfg, spec, device='cpu', seed=11), replay
 
 
-def test_actor_and_critic_keep_one_to_one_schedule_across_calls():
+def test_actor_and_critic_keep_official_schedule_across_calls():
     learner, replay = learner_and_replay()
     learner.update(replay, 1)
     actor = copy.deepcopy(learner.actor.state_dict())
     critic = copy.deepcopy(learner.critic.online.state_dict())
     learner.update(replay, 3)
-    assert any(not torch.equal(actor[k], v) for k, v in learner.actor.state_dict().items())
+    assert all(torch.equal(actor[k], v) for k, v in learner.actor.state_dict().items())
     assert any(not torch.equal(critic[k], v) for k, v in learner.critic.online.state_dict().items())
     assert learner.counts['updates'] == 4
-    for optimizer in (learner.actor_opt, learner.critic_opt):
-        assert {int(state['step']) for state in optimizer.state.values()} == {4}
+    assert {int(s['step']) for s in learner.actor_opt.state.values()} == {1}
+    assert {int(s['step']) for s in learner.critic_opt.state.values()} == {4}
+    learner.update(replay, 1)
+    assert learner.counts['actor_updates'] == 2
+    assert {int(s['step']) for s in learner.actor_opt.state.values()} == {2}
 
 
 def test_gradient_clipping_obeys_configured_scale():
@@ -54,3 +57,16 @@ def test_production_settings_reach_learner_and_keep_discount():
     assert learner.settings['batch_size'] == 256
     assert learner.settings['lambda_bc'] == 5.
     assert learner.settings['reference_dropout'] == .5
+    assert learner.settings['critic_actor_ratio'] == 4
+
+
+def test_target_updates_even_when_actor_is_skipped():
+    learner, replay = learner_and_replay()
+    learner.update(replay, 1)
+    target = copy.deepcopy(learner.critic.target.state_dict())
+    learner.update(replay, 1)  # global step 1: critic only
+    tau = learner.settings['polyak_tau']
+    online = learner.critic.online.state_dict()
+    for key, value in learner.critic.target.state_dict().items():
+        torch.testing.assert_close(value, target[key] * (1 - tau) + online[key] * tau)
+    assert learner.counts['actor_updates'] == 1

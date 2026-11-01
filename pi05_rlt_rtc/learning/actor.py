@@ -1,10 +1,10 @@
 """Queue-aware direct-chunk RLT actor.
 
 The main actor predicts the C-step env command chunk directly (not a residual
-or noise policy).  It keeps the upstream parameterisation family: a small MLP
-trunk, fixed exploration standard deviation before ``tanh`` and a bounded
+or noise policy). It uses the upstream three-layer Tanh MLP trunk,
+fixed exploration standard deviation before ``tanh`` and a bounded
 final action.  New here is the queue/time conditioning and the rule that the
-*reference branch* is the only thing reference dropout touches (guide section
+*reference input* is the only thing reference dropout touches (guide section
 11.3/11.4).
 """
 
@@ -22,13 +22,12 @@ from pi05_rlt_rtc.contracts.errors import ContractError
 from pi05_rlt_rtc.learning.planning_state import PlanningStateSpec
 
 
-def _mlp(dims: list[int], activation: type[nn.Module] = nn.SiLU) -> nn.Sequential:
-    layers: list[nn.Module] = []
-    for i in range(len(dims) - 1):
-        layers.append(nn.Linear(dims[i], dims[i + 1]))
-        if i < len(dims) - 2:
-            layers.append(activation())
-    return nn.Sequential(*layers)
+# RLinf c70606f: modules/utils.py::layer_init and mlp_policy.py.
+def _actor_linear(in_dim: int, out_dim: int, gain: float = math.sqrt(2)) -> nn.Linear:
+    layer = nn.Linear(in_dim, out_dim)
+    nn.init.orthogonal_(layer.weight, gain)
+    nn.init.zeros_(layer.bias)
+    return layer
 
 
 @dataclasses.dataclass
@@ -43,8 +42,7 @@ class QueueAwareRLTActor(nn.Module):
         self,
         spec: PlanningStateSpec,
         *,
-        hidden_dims: tuple[int, ...] = (256, 256),
-        reference_hidden_dims: tuple[int, ...] = (128,),
+        hidden_dims: tuple[int, ...] = (256, 256, 256),
         action_low: Any | None = None,
         action_high: Any | None = None,
         fixed_std: float = 0.002,
@@ -57,7 +55,6 @@ class QueueAwareRLTActor(nn.Module):
         self.fixed_std = float(fixed_std)
         self.name = name
         self.hidden_dims = tuple(int(d) for d in hidden_dims)
-        self.reference_hidden_dims = tuple(int(d) for d in reference_hidden_dims)
         low = np.full(spec.env_action_dim, -1.0) if action_low is None else np.asarray(action_low, dtype=np.float32)
         high = np.full(spec.env_action_dim, 1.0) if action_high is None else np.asarray(action_high, dtype=np.float32)
         if low.shape != (spec.env_action_dim,) or high.shape != (spec.env_action_dim,):
@@ -71,13 +68,13 @@ class QueueAwareRLTActor(nn.Module):
         ref_dim = spec.chunk * spec.env_action_dim
         self.state_dim = state_dim
         self.ref_dim = ref_dim
-        trunk_dims = [state_dim, *hidden_dims]
-        self.trunk = _mlp(trunk_dims)
-        ref_dims = [ref_dim, *reference_hidden_dims]
-        self.reference_encoder = _mlp(ref_dims)
-        head_in = hidden_dims[-1] + reference_hidden_dims[-1]
-        self.head = nn.Linear(head_in, spec.chunk * spec.env_action_dim)
-        nn.init.zeros_(self.head.bias)
+        layers = []
+        in_dim = state_dim + ref_dim
+        for width in self.hidden_dims:
+            layers.extend([_actor_linear(in_dim, width), nn.Tanh()])
+            in_dim = width
+        self.trunk = nn.Sequential(*layers)
+        self.head = _actor_linear(in_dim, ref_dim, gain=.01 * math.sqrt(2))
 
     # -- layout -----------------------------------------------------------------
     @property
@@ -118,9 +115,7 @@ class QueueAwareRLTActor(nn.Module):
             )
             ref = reference_suffix * keep.to(reference_suffix.dtype)
             dropped = ~keep
-        hidden = self.trunk(state)
-        ref_hidden = self.reference_encoder(ref)
-        raw = self.head(torch.cat([hidden, ref_hidden], dim=-1))
+        raw = self.head(self.trunk(torch.cat([state, ref], dim=-1)))
         raw = raw.reshape(B, self.spec.chunk, self.spec.env_action_dim)
         return ActorOutput(raw=raw, actions=self.bounded_actions(raw), reference_dropped=dropped)
 

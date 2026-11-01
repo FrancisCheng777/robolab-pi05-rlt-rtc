@@ -34,6 +34,7 @@ training:
   reward_source: manual_terminal
   gamma_per_tick: 0.99
   replay_capacity: 10000
+  critic_actor_ratio: 4
   batch_size: 256
   actor_lr: 0.0003
   critic_lr: 0.0003

@@ -54,7 +54,7 @@ D405 `observation.images.wrist` → `base_0_rgb`，图像掩码 `[true,false,fal
 3. **2×A800 Stage 1。** 用 π0.5 基础权重初始化，全量训练 π0.5 + RLT 表征/重建模块。先预检和独立 synthetic smoke，再运行真实 SFT。RTC 在此阶段关闭。选择 checkpoint 时同时看独立验证集 flow loss、RLT 重建 loss 和后续冻结策略 rollout；2000 steps 是配置起点，不是最佳值承诺。
 4. **冻结与无运动验收。** 把完整 actor 导出目录拷到 4090。配置 checkpoint、norm stats 和本机解释器。先做资产校验、录制输入离线推理和全尺寸 RTC profile，不启动设备。当前 H/C/D=`10/5/2`，15 Hz，对应规划 deadline 约 **133 ms**；必须测到实际 full-VJP 延迟满足要求才用于连续控制，不能用 tiny 测试时间代替。
 5. **固定 Stage-1 基线评估。** 在人工准备的初始条件下，用 `session --mode eval` 跑固定 teacher。每轮 `r` 接近，`b` 标记关键阶段，`a/c` 结束判定；未进入关键阶段的失败也保留在整轮成功率分母。评分后先 hold，不自动回位。需要回位时明确按 `h`，确认完成后再 `r`。
-6. **4090 Stage 2。** 新训练 session 先用 teacher 采样。默认至少 5 个有效关键阶段 episode 且至少 32 条可学习 chunk transition 后，actor 做 100 次 BC warmup，再做 100 次 actor–critic 更新。之后每个新增有效 episode 都从累积 replay 采样更新 100 次，配置可调。π0.5 和 RLT 全程冻结。
+6. **4090 Stage 2。** 新训练 session 先用 teacher 采样。默认至少 5 个有效关键阶段 episode 且至少 32 条可学习 chunk transition 后，actor 做 100 次 BC warmup，再做 100 次 critic 更新、25 次 actor 更新。之后每个新增有效 episode 都从累积 replay 更新 100 次 critic、25 次 actor，配置可调；BC warmup 单独计数。π0.5 和 RLT 全程冻结。
 7. **独立评估与定版。** 固定一个 Stage-2 `policy.pt`，用新目录 `--mode eval --policy ...`；探索关闭，整个评估过程不更新权重。报告整轮成功率、关键阶段耗时、终止原因与安全/规划失败，保留所有开始的 episode。选择模型后按相同输入/归一化/RTC 配置部署。
 
 ### 推荐的训练调度
@@ -63,7 +63,7 @@ D405 `observation.images.wrist` → `base_0_rgb`，图像掩码 `[true,false,fal
 
 RTC 解决执行队列与推理延迟，因此 **Stage 1 不需要 RTC，但 Stage 2 rollout 就要开启最终部署使用的 RTC**，不能等 RL 结束后才换入不同执行语义。本项目的 queue-aware actor/critic、延迟 transition assembler 和 RTC 组合是本地集成扩展，不宣称是上游完整复现。
 
-Stage-2 学习标量已对齐固定 RLinf 示例：actor/critic LR=3e-4、batch=256、Q/BC 权重=0.1/5、reference dropout=0.5、梯度裁剪=10。gamma=0.99、AC 结构、队列状态与更新调度仍保持本地版本。详细来源、差异理由及测试见 [参数与结构审计](docs/RLINF_PARAMETER_AUDIT.md)。改变训练参数后请用新训练目录，resume 会拒绝参数不一致，防止旧优化器恢复旧学习率。
+Stage-2 学习标量已对齐固定 RLinf 示例：actor/critic LR=3e-4、batch=256、Q/BC 权重=0.1/5、reference dropout=0.5、梯度裁剪=10。AC 主体已恢复官方三层 256/Tanh、critic LayerNorm 和初始化，actor:critic 更新比为 1:4，计数跨 episode 与 resume 连续。队列输入、gamma=0.99 和 episode 采样调度保留。详细来源、差异理由及测试见 [参数与结构审计](docs/RLINF_PARAMETER_AUDIT.md)。请为新 AC 使用新的 Stage-2 训练目录；旧两层 AC checkpoint 会明确拒绝加载，Stage-1 π0.5/RLT 权重仍可沿用。改变训练参数的 resume 也会被拒绝，防止旧优化器恢复旧学习率。
 
 ### 人工评分与探索
 
