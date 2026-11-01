@@ -1,0 +1,61 @@
+{
+  "date": "2026-11-01",
+  "kind": "post_restart_storage_validation",
+  "formal_training": false,
+  "world_size": 4,
+  "gpus": "4 x A800 80GB PCIe retained after user restart",
+  "fs": {
+    "path": "/root/autodl-fs",
+    "resolved_mount": "/autodl-fs/data",
+    "filesystem": "fuse.autofs",
+    "reported_capacity_bytes": 214748364800,
+    "write_fsync_read_probe_passed": true,
+    "cpu_distributed_checkpoint_test": {
+      "world_size": 4,
+      "device": "cpu/gloo",
+      "fsdp_wrappers": 38,
+      "full_shard": true,
+      "accumulation_matches_reference": true,
+      "rlinf_dcp_save_restore": true,
+      "optimizer_restore": true,
+      "gpu_export_offload_tested": false,
+      "full_weights_strict_reload": true,
+      "bf16_autocast_backward": true,
+      "gpu_memory_measured": false
+    },
+    "full_size_checkpoint_write_tested_on_fs": false
+  },
+  "cloud_data_disk_available_gib_approx": 29,
+  "cloud_tmpfs_capacity_gib": 240,
+  "ssd_4090": {
+    "path": "/media/heinrich/SANDISK SSD",
+    "backup_directory": "/media/heinrich/SANDISK SSD/pi05-stage1-backups",
+    "filesystem": "exfat",
+    "available_gib_approx": 466,
+    "writable": true
+  },
+  "transfer_probe": {
+    "bytes": 16777216,
+    "sha256": "f9f7d6b063f9b3ea5e0861f18a91d7d4e4d7a8e925025e1b660124b93410df1a",
+    "direct_cloud_to_4090": true,
+    "mac_payload_bytes": 0,
+    "single_connection_seconds": 27.762765962004778,
+    "parallel_connections": 4,
+    "parallel_seconds": 7.453348953000386,
+    "parallel_mib_s": 2.1466860200553355,
+    "sustained_full_checkpoint_measurement": false
+  },
+  "pip_check_passed": true,
+  "synthetic_input_preflight_passed": true,
+  "prior_validated_source_manifest_verified_files": 26,
+  "probe_payloads_removed": true,
+  "cloud_records_directory": "/root/autodl-tmp/preparation",
+  "plan": {
+    "checkpoint_bytes_approx": 65625135617,
+    "segment_steps": 2000,
+    "target_max_retained_cloud_checkpoints": 2,
+    "archive_verify_before_removing": true,
+    "automatic_archival_or_retention": false,
+    "pending": "Reviewed real dataset location and actual-data preflight"
+  }
+}

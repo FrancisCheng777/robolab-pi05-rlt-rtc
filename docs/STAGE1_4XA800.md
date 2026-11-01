@@ -120,10 +120,21 @@ The AutoDL container has a 480 GiB RAM quota and 240 GiB `/dev/shm` tmpfs.
 Tmpfs consumes that same RAM quota, is not extra memory, and is not durable.
 Synthetic full-model save/resume may use tmpfs while monitoring aggregate RAM.
 Production requires verified persistent checkpoint storage before launch.
-AutoDL `autodl-fs` is separate shared storage. The A800-region 200 GB store
-is initialized and empty; this running instance has not mounted it.
-Do not restart or release the scarce GPUs to mount storage without an agreed plan.
+AutoDL `autodl-fs` is separate shared storage. After the user's restart on
+2026-11-01, it is mounted through `/root/autodl-fs` (a symlink to
+`/autodl-fs/data`), reporting 200 GiB capacity. All four A800 GPUs remain available.
+Four-rank tiny-model DCP save/restore, exact optimizer restore and a write/read
+probe passed on this filesystem; a full 65.6 GB checkpoint write has not yet been
+measured on fs. No further restart is needed for this mount.
 Cloud-to-4090 transfers should be direct; the Mac is not a checkpoint destination.
+The 4090 backup disk is mounted at `/media/heinrich/SANDISK SSD` (exFAT,
+about 466 GiB free), with destination `pi05-stage1-backups/`. Direct 16 MiB
+single-/four-connection transfer probes passed SHA-256 verification. The parallel
+probe measured 2.15 MiB/s; this is not sustained full-checkpoint throughput.
+Use fs for active training checkpoints and the SSD for verified archives. Run in
+2000-step segments, aim to retain at most two full checkpoints on fs, and archive
+and verify older checkpoints before removing them or continuing beyond capacity.
+Retention and archival are supervised, not an automatic background service.
 
 ## Full-model synthetic measurements (2026-11-01)
 

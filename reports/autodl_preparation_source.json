@@ -7,10 +7,10 @@
     "docs/DEPLOYMENT.md": "192656a6c022df63638df3fde34a9dbf93c3d2fcfb61497344f8f9218771cf42",
     "docs/INTEGRATION.md": "c88ee64ed4ad7c827b52fde4b6ce8f392b3a8017bf23bfaa78f1747e0223b198",
     "docs/RLINF_PARAMETER_AUDIT.md": "ba3bccf5352b0a5e64d217dd4d7b0cfa3540d88abfbe4df764f2052afcf0794d",
-    "docs/STAGE1_4XA800.md": "1a879a4b5958bd5c63237e56392ed478e0028887ded208f39ffc2c6fbd7a6f60",
+    "docs/STAGE1_4XA800.md": "a5106749629b7db7afa374912eab03db4aaacc5571e5116053f64a95f9c35f84",
     "docs/STAGE1_WINDOW_ALIGNMENT.md": "143ab85526c95ac21027d038a2892be7d179512673bfb5e699fc074704a22897",
     "docs/STATUS.md": "7528cd4a712cd6211b2026deeeb40d9b985a61006ec2326bb04556ee85d15bcf",
-    "docs/VALIDATION.md": "5ee8849dbe53ed237368c8ed5b92c96f0a43fac0d4359b3830ecbbe217a1bb68",
+    "docs/VALIDATION.md": "15c574a594be8fac47819f8164fa86ac713bf6b9b615aada0266f87691bb3da6",
     "scripts/start_stage1.sh": "7e099dd98202f5bf2323e85809dbe10e2fe2efb635311298b6289908a74ea0e6",
     "scripts/start_stage1_4xa800.sh": "df28a7fbb9037702e3b19558a17fbc136cdc4eb449cffbc2c0e8a550b50d9de0",
     "stage1_integration/configs/stage1_2xa800.yaml": "502221d7ec48447154e057a483a105c6a91585e46206f626d0b828c84dfb7347",
@@ -34,7 +34,7 @@
     "tests/test_official_stage2_settings 2.py"
   ],
   "formal_training_started": false,
-  "preparation_state": "Four-GPU synthetic acceptance complete; awaiting reviewed data and persistent fs mount",
+  "preparation_state": "Four-GPU acceptance complete; fs mounted and small checkpoint save/restore verified after user restart; awaiting reviewed real dataset",
   "gpu_collectives": "All 4 ranks passed BF16 matmul and NCCL all-reduce using preinstalled torch 2.12.1+cu130; subsequent full-model smoke/save/resume passed in pinned torch 2.7.1+cu126 environment",
   "full_model_smoke_passed": true,
   "base_weights_download_complete": true,
@@ -46,7 +46,8 @@
     "shm_capacity_GiB": 240,
     "mac_available_GiB": 207,
     "fs_initialized": true,
-    "fs_mounted": false
+    "fs_mounted": true,
+    "ssd_4090_free_GiB_approx": 466
   },
   "rental_stopped": false,
   "synthetic_checkpoint_cleanup": "Completed at user request; 183.355 GiB freed, 48 small records preserved on the cloud data disk. See autodl_synthetic_cleanup_20261101.json."

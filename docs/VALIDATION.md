@@ -39,9 +39,16 @@ The [cleanup manifest](../reports/autodl_synthetic_cleanup_20261101.json) record
 the exact removed paths and retained artifacts. Original test reports remain.
 Observed container peak during validation was about 309.6 GiB, within its
 480 GiB quota; the 240 GiB tmpfs shares that quota and is not durable.
-The A800-region 200 GB fs is initialized and empty, but not mounted in this running
-instance. Persistent storage remains the launch blocker; no real training,
-instance restart, or robot operation occurred. A protected host-specific launcher
+After the user restarted the instance, the A800-region fs is mounted and reports
+200 GiB capacity; all four A800 GPUs remain available. The pinned environment's
+dependency check and a synthetic-input preflight passed again. Four-rank CPU
+tiny-model DCP save/restore and exact optimizer restoration passed directly on
+fs. This does not replace the earlier full-model GPU test or measure large fs I/O.
+The new 4090 SSD is writable with about 466 GiB free. Direct cloud-to-SSD probes
+passed SHA-256 verification; no payload passed through the Mac. Small storage
+probe files were removed after verification, with logs/reports retained.
+Real data remains pending; no formal training or robot operation occurred.
+A protected host-specific launcher
 is prepared at `/root/autodl-tmp/preparation/start-real-stage1.sh`; it requires
 reviewed data, mounted fs and free space, and initially stops at 2000 updates.
 
