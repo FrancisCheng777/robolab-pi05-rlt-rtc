@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pi05-rlt-rtc"
+version = "0.1.0"
+description = "Queue-aware RLT actor-critic with inference-time RTC for the pi0.5/RLinf stack (implementation package)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+dependencies = [
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+torch = ["torch>=2.1"]
+yaml = ["PyYAML>=6.0"]
+test = ["pytest>=7.4", "PyYAML>=6.0"]
+runtime = ["torch>=2.1", "PyYAML>=6.0", "omegaconf>=2.3", "sentencepiece>=0.2", "h5py>=3.10"]
+controller = ["PyYAML>=6.0"]
+cameras = ["pillow>=10", "pyrealsense2; sys_platform == 'linux'"]
+
+[project.scripts]
+pi05-rlt-rtc = "pi05_rlt_rtc.tools.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["pi05_rlt_rtc*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "gpu: requires a CUDA GPU and real model weights (NOT_RUN on CPU-only machines)",
+    "upstream: requires the pinned RLinf/openpi runtime and real assets (NOT_RUN without them)",
+    "wallclock: wall-clock timing test on CPU with an explicitly labelled mock planner",
+]

@@ -1,0 +1,52 @@
+{
+  "mock": true,
+  "random_tiny_upstream_weights": true,
+  "hardware_opened": false,
+  "trained_full_model_tested": false,
+  "torch": "2.7.1+cu128",
+  "cuda": "12.8",
+  "gpu": "NVIDIA GeForce RTX 4090",
+  "total_memory_mib": 24089,
+  "peak_allocated_mib": 97,
+  "rtc": {
+    "none": {
+      "finite": true,
+      "seeded_repeatable": true,
+      "two_calls_s": 0.41659914900083095
+    },
+    "approx": {
+      "finite": true,
+      "seeded_repeatable": true,
+      "two_calls_s": 0.08749788400018588
+    },
+    "full_vjp": {
+      "finite": true,
+      "seeded_repeatable": true,
+      "two_calls_s": 0.13287356100045145
+    }
+  },
+  "actor_critic_z_dim": 2048,
+  "learner_counts": {
+    "warmup_updates": 2,
+    "updates": 2,
+    "rounds": 0
+  },
+  "learner_metrics": [
+    {
+      "bc_loss": 0.13917529582977295,
+      "actor_grad_norm": 0.2920967936515808
+    },
+    {
+      "bc_loss": 0.1374930441379547,
+      "actor_grad_norm": 0.2899090647697449
+    },
+    {
+      "actor_loss": 0.13772498071193695,
+      "critic_loss": 22.40726089477539
+    },
+    {
+      "actor_loss": 0.14128050208091736,
+      "critic_loss": 22.07711410522461
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "collection_commit": "eb9a6c5855a26025841204c715880f4ea3182709",
+  "read_only_dependency": true,
+  "files": {
+    "configs/latency/responsive_recording/bridge.trial.json": "332076c5a848a59b95300df87f8d2bb610c994dd87f9086573e0cc883bd7ef54",
+    "configs/latency/responsive_recording/collection.trial.json": "a7a7a0086847d64b1a1b121ba9fed2582d10839479bf1fcc7bf58cb7abb1a4b5",
+    "pi05_demo/session.py": "a8596a1d188766f2693cf3dbced3b8ffbf2eae490c4e300e3f661621787dd104",
+    "pi05_demo/transport.py": "9d6990340480632c3c83c446c49894843dc63a25c824690ad4e5e653969d3144",
+    "pi05_demo/cameras.py": "ea5430283e0ac5e7b85993b026dd1c6c35e345a290ee2d9f746273d0ad348b43"
+  }
+}

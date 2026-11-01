@@ -1,0 +1,63 @@
+{
+  "kind": "research_snapshot_not_runtime_lock",
+  "research_date": "2026-10-29",
+  "runtime_validated": false,
+  "repositories": [
+    {
+      "repository": "RLinf/RLinf",
+      "commit": "c70606f08cdca259b8dec03d4430926b5b8fac9d",
+      "commit_time_utc": "2026-10-02T08:56:10Z",
+      "role": "implementation_base",
+      "verification": "GitHub commit and pinned source reads"
+    },
+    {
+      "repository": "Physical-Intelligence/openpi",
+      "commit": "215abfb217dbac7d5f1273282331b9b1866c0479",
+      "commit_time_utc": "2026-08-24T16:27:12Z",
+      "role": "official_model_reference",
+      "verification": "GitHub branch metadata and repository documentation"
+    },
+    {
+      "repository": "Physical-Intelligence/real-time-chunking-kinetix",
+      "commit": "9296f31d62d5bfeb5779dcb2f9bcf71ca37f448b",
+      "commit_time_utc": null,
+      "role": "official_inference_time_rtc_math_reference",
+      "verification": "pinned src/model.py source read"
+    }
+  ],
+  "assets": {
+    "dataset": {
+      "source": "Real Panda/Robotiq demonstrations exported by pi05_plug_demo",
+      "format": "LeRobot v3",
+      "action_contract_id": "panda_delta_q0.03_robotiq_width0.085_v1",
+      "revision": null,
+      "local_schema_verified": false
+    },
+    "base_model": {
+      "official_resource_hint": "gs://openpi-assets/checkpoints/pi05_base",
+      "resolved_repository_or_uri": null,
+      "revision": null,
+      "weights_sha256": null,
+      "downloaded": false,
+      "compatible_with_rlinf_loader_verified": false
+    },
+    "stage1_checkpoint": null,
+    "normalization_sha256": null
+  },
+  "runtime_versions": {
+    "python": null,
+    "pytorch": null,
+    "cuda_runtime": null,
+    "nvidia_driver": null,
+    "gpu": null,
+    "openpi_runtime": null,
+    "lerobot": null,
+    "container_digest": null
+  },
+  "notes": [
+    "Null means must be resolved and verified during implementation; never treat it as latest.",
+    "Pinning RLinf does not pin all dependencies installed by its scripts.",
+    "The design_config is a proposed adapter schema and is not a runnable upstream configuration.",
+    "Physical integration is implemented; real data, model/GPU and hardware validation remain NOT_RUN. See ../STATUS.md for software checks."
+  ]
+}

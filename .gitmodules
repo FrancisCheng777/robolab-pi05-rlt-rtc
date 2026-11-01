@@ -1,0 +1,3 @@
+[submodule "vendor/robolab-collecting-pipeline"]
+	path = vendor/robolab-collecting-pipeline
+	url = https://github.com/FrancisCheng777/robolab-collecting-pipeline.git

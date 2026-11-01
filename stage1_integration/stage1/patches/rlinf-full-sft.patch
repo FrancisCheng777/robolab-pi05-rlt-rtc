@@ -1,0 +1,177 @@
+--- a/rlinf/config.py
++++ b/rlinf/config.py
+@@ -544,11 +544,29 @@
+             sharding = (
+                 str(cfg.fsdp_config.sharding_strategy).strip().lower().replace("-", "_")
+             )
+-            assert sharding == "no_shard", (
+-                "openpi only supports actor.fsdp_config.sharding_strategy="
+-                f"'no_shard' (got {cfg.fsdp_config.sharding_strategy!r}). "
+-                "Nested FSDP flattening (full_shard / shard_grad_op) is not supported."
+-            )
++            if cfg.fsdp_config.get("allow_openpi_full_sft", False):
++                # Opt-in is limited to the independently tested full-SFT path.
++                assert (
++                    sharding == "full_shard"
++                    and cfg.model.openpi.task == "sft"
++                    and cfg.model.openpi.use_rlt
++                    and not cfg.model.is_lora
++                    and not cfg.model.openpi.train_expert_only
++                    and cfg.model.precision == "fp32"
++                    and cfg.fsdp_config.use_orig_params
++                    and cfg.fsdp_config.gradient_checkpointing
++                    and not cfg.fsdp_config.get(
++                        "gradient_checkpointing_use_reentrant", True
++                    )
++                    and not cfg.fsdp_config.cpu_offload
++                ), (
++                    "allow_openpi_full_sft requires FP32 full RLT SFT with non-reentrant checkpointing"
++                )
++            else:
++                assert sharding == "no_shard", (
++                    "openpi full_shard requires the independent Stage-1 opt-in; "
++                    f"got {cfg.fsdp_config.sharding_strategy!r} without allow_openpi_full_sft."
++                )
+ 
+         cfg.fsdp_config.forward_prefetch = cfg.fsdp_config.get(
+             "forward_prefetch", False
+--- a/rlinf/models/embodiment/openpi/pi0.py
++++ b/rlinf/models/embodiment/openpi/pi0.py
+@@ -826,8 +826,7 @@
+     ) -> torch.Tensor | dict[str, torch.Tensor]:
+         """Flow-matching SFT loss. Shared by SFT, DAgger, and PPO co-train."""
+         del kwargs
+-        if hasattr(self, "gradient_checkpointing_disable"):
+-            self.gradient_checkpointing_disable()
++        # Respect the training backend checkpointing setting throughout SFT.
+         observation, actions = self._unpack_sft_batch(data)
+         observation = self._observation_to_device(observation)
+         actions = self._actions_to_device(actions)
+@@ -932,8 +931,14 @@
+         self.llm.gradient_checkpointing_use_reentrant = use_reentrant
+         self.img.encoder.gradient_checkpointing = True
+         self.img.encoder.gradient_checkpointing_use_reentrant = use_reentrant
++        if self.rlt_cfg.use_rlt:
++            self.rlt_module.encoder.gradient_checkpointing = True
++            self.rlt_module.decoder.gradient_checkpointing = True
+ 
+     def gradient_checkpointing_disable(self, **kwargs):
+         """Disable gradient checkpointing (used by the eval / no-recompute path)."""
+         self.llm.gradient_checkpointing = False
+         self.img.encoder.gradient_checkpointing = False
++        if self.rlt_cfg.use_rlt:
++            self.rlt_module.encoder.gradient_checkpointing = False
++            self.rlt_module.decoder.gradient_checkpointing = False
+--- a/rlinf/models/embodiment/openpi/modules/siglip.py
++++ b/rlinf/models/embodiment/openpi/modules/siglip.py
+@@ -148,6 +148,22 @@
+         return x
+ 
+ 
++class Float32PatchEmbedding(nn.Conv2d):
++    """Keep FP32 convolution inside forward so FSDP can gather the stem weights."""
++
++    def forward(self, x: torch.Tensor) -> torch.Tensor:
++        with torch.autocast(device_type=x.device.type, enabled=False):
++            return F.conv2d(
++                x.float(),
++                self.weight.float(),
++                None if self.bias is None else self.bias.float(),
++                self.stride,
++                self.padding,
++                self.dilation,
++                self.groups,
++            )
++
++
+ class SigLIPViT(nn.Module):
+     """SigLIP Vision Transformer for Pi0. Uses So400m/14 by default with pool_type="none".
+ 
+@@ -176,7 +192,7 @@
+             _str_to_dtype(dtype_mm) if isinstance(dtype_mm, str) else dtype_mm
+         )
+ 
+-        self.stem = nn.Conv2d(
++        self.stem = Float32PatchEmbedding(
+             3,
+             self.width,
+             kernel_size=self.patch_size,
+@@ -250,13 +266,7 @@
+         # --- Stem + pos_embed in float32 (matching JAX) ---
+         # image is (B, H, W, C) -> (B, C, H, W)
+         x = image.permute(0, 3, 1, 2)
+-        x = F.conv2d(
+-            x.float(),
+-            self.stem.weight.float(),
+-            None if self.stem.bias is None else self.stem.bias.float(),
+-            stride=self.stem.stride,
+-            padding=self.stem.padding,
+-        )
++        x = self.stem(x)
+         B, C, h, w = x.shape
+         x = x.reshape(B, C, h * w).permute(0, 2, 1)  # (B, h*w, width)
+ 
+--- a/rlinf/models/embodiment/modules/rlt_token_transformer.py
++++ b/rlinf/models/embodiment/modules/rlt_token_transformer.py
+@@ -17,6 +17,7 @@
+ import torch
+ import torch.nn as nn
+ import torch.nn.functional as F
++from torch.utils.checkpoint import checkpoint
+ 
+ 
+ def sinusoidal_pe_init(seq_len: int, embed_dim: int) -> torch.Tensor:
+@@ -122,6 +123,7 @@
+         self.input_dim = int(input_dim)
+         self.embed_dim = int(embed_dim)
+         self.prefix_seq_len = int(prefix_seq_len)
++        self.gradient_checkpointing = False
+ 
+         self.input_proj = (
+             nn.Linear(self.input_dim, self.embed_dim)
+@@ -183,7 +185,14 @@
+             mask = torch.cat([mask, rl_mask], dim=1)
+ 
+         for layer in self.layers:
+-            x = layer(x, mask=mask)
++            if (
++                self.gradient_checkpointing
++                and self.training
++                and torch.is_grad_enabled()
++            ):
++                x = checkpoint(layer, x, mask=mask, use_reentrant=False)
++            else:
++                x = layer(x, mask=mask)
+         return x[:, -1:]
+ 
+ 
+@@ -205,6 +214,7 @@
+         self.input_dim = int(input_dim)
+         self.embed_dim = int(embed_dim)
+         self.prefix_seq_len = int(prefix_seq_len)
++        self.gradient_checkpointing = False
+ 
+         self.teacher_input_proj = (
+             nn.Linear(self.input_dim, self.embed_dim)
+@@ -292,7 +302,20 @@
+ 
+         x = decoder_inputs
+         for layer in self.layers:
+-            x = layer(x, mask=decoder_input_mask, attn_mask=causal_mask)
++            if (
++                self.gradient_checkpointing
++                and self.training
++                and torch.is_grad_enabled()
++            ):
++                x = checkpoint(
++                    layer,
++                    x,
++                    mask=decoder_input_mask,
++                    attn_mask=causal_mask,
++                    use_reentrant=False,
++                )
++            else:
++                x = layer(x, mask=decoder_input_mask, attn_mask=causal_mask)
+         return self.output_proj(x)
+ 
+ 

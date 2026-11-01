@@ -1,0 +1,129 @@
+{
+  "_comment": "SYNTHETIC TEST ONLY; --mock required; not a robot calibration",
+  "robot_model": "panda",
+  "action_contract_id": "panda_delta_q0.03_robotiq_width0.085_v1",
+  "joint_delta_scale": [
+    0.03,
+    0.03,
+    0.03,
+    0.03,
+    0.03,
+    0.03,
+    0.03
+  ],
+  "finger_range": [
+    0,
+    0.0425
+  ],
+  "joint_lower": [
+    -2.8973,
+    -1.7628,
+    -2.8973,
+    -3.0718,
+    -2.8973,
+    -0.0175,
+    -2.8973
+  ],
+  "joint_upper": [
+    2.8973,
+    1.7628,
+    2.8973,
+    -0.0698,
+    2.8973,
+    3.7525,
+    2.8973
+  ],
+  "max_velocity": [
+    0.3,
+    0.3,
+    0.3,
+    0.3,
+    0.3,
+    0.3,
+    0.3
+  ],
+  "max_acceleration": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "max_jerk": [
+    20.0,
+    20.0,
+    20.0,
+    20.0,
+    20.0,
+    20.0,
+    20.0
+  ],
+  "joint_impedance": [
+    600.0,
+    600.0,
+    600.0,
+    600.0,
+    250.0,
+    150.0,
+    50.0
+  ],
+  "max_tracking_error": [
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05
+  ],
+  "collision_torque": [
+    20.0,
+    20.0,
+    20.0,
+    20.0,
+    18.0,
+    18.0,
+    18.0
+  ],
+  "collision_force": [
+    20.0,
+    20.0,
+    20.0,
+    15.0,
+    15.0,
+    15.0
+  ],
+  "load_mass": 0.0,
+  "load_center": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "load_inertia": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "command_timeout_s": 0.25,
+  "state_timeout_s": 0.05,
+  "max_state_sequence_lag": 50,
+  "gripper_max_width": 0.085,
+  "gripper_speed": 64,
+  "gripper_force": 64,
+  "gripper_grasp_epsilon_inner": 0.005,
+  "gripper_grasp_epsilon_outer": 0.005,
+  "gripper_command_deadband": 0.001,
+  "hardware_verified": false,
+  "gripper_type": "robotiq_2f85",
+  "gripper_device": null,
+  "robotiq_open_position": null,
+  "robotiq_closed_position": null
+}

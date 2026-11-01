@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "hardware_verified": false,
+  "task": "insert the plug into the power strip",
+  "control_hz": 15,
+  "socket": "/tmp/pi05-rlt-rtc-integrated.sock",
+  "gello_port": "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTBYPQ5E-if00-port0",
+  "cameras": {
+    "main_serial": "019337540647",
+    "wrist_serial": null,
+    "main_rotate_cw": true,
+    "main_crop_square": true
+  }
+}
