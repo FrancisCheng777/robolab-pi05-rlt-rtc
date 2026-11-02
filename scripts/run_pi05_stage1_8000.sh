@@ -53,7 +53,30 @@ r=json.loads(p.read_text())
 if not r.get('passed') or r['runtime_contract']!=cfg.wire_contract():raise SystemExit('常驻 RTC 验收未通过或配置已变化。')
 VERIFY
   fi
-  exec "$PI05_RUNTIME_PYTHON" -m pi05_rlt_rtc.deployment.managed_eval "$1" --runtime-config "$CONFIG"
+  TASK_BRIDGE_LOG="$HOME/.cache/pi05-stage1-8000/bridge.log"
+  TASK_LOG_OFFSET=0
+  if [[ -f "$TASK_BRIDGE_LOG" ]]; then TASK_LOG_OFFSET=$(wc -c < "$TASK_BRIDGE_LOG"); fi
+  if "$PI05_RUNTIME_PYTHON" -m pi05_rlt_rtc.deployment.managed_eval "$1" --runtime-config "$CONFIG"; then
+   exit 0
+  else
+   TASK_EXIT=$?
+   if [[ "$1" == eval && -f "$TASK_BRIDGE_LOG" ]]; then
+    "$PI05_RUNTIME_PYTHON" - "$TASK_BRIDGE_LOG" "$TASK_LOG_OFFSET" <<'FAILURE'
+from pathlib import Path
+import sys
+p=Path(sys.argv[1]);offset=int(sys.argv[2]);size=p.stat().st_size
+with p.open('rb') as stream:
+    stream.seek(max(offset, size-8192))
+    details=stream.read().decode(errors='replace').strip()
+if details:
+    print('本次 bridge 日志：', file=sys.stderr)
+    print(details, file=sys.stderr)
+if 'command not possible in the current mode' in details:
+    print('Panda 当前模式拒绝初始化。请在 Franka Desk 检查并按提示恢复到 Idle 后再启动；程序没有自动清错或启动运动。', file=sys.stderr)
+FAILURE
+   fi
+   exit "$TASK_EXIT"
+  fi
   ;;
  *) echo 'Usage: bash ~/run_pi05_stage1_8000.sh [check|eval|prewarm|stop-model|status|bridge]'; exit 2;;
 esac
