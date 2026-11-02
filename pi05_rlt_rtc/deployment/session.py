@@ -243,7 +243,7 @@ def _run_session(args):
         raise ContractError('--annotator is required')
     if args.mode == "train" and args.policy:
         raise ContractError("training resumes from session rounds; use --policy only for fixed-policy evaluation")
-    if getattr(args, 'planner_url', None) and (args.mode != 'eval' or cfg.raw['policy']['kind'] != 'teacher'):
+    if getattr(args, 'planner_url', None) and not getattr(args, 'resident_teacher', False) and (args.mode != 'eval' or cfg.raw['policy']['kind'] != 'teacher'):
         raise ContractError('resident planner sessions currently support teacher eval only')
     from .bridge_preflight import probe_bridge
     probe_bridge(cfg.raw['franka']['socket'], json.loads(
@@ -261,7 +261,11 @@ def _run_session(args):
         raise ContractError('session directory belongs to different model/config/mode')
     atomic_json(manifest,identity)
     metadata.update(annotator=args.annotator,mode=args.mode)
-    checkpoint = update_round(cfg,root,seed=args.seed,device=cfg.raw['model']['device']) if args.mode=='train' else None
+    if getattr(args, 'collect_only', False) and list((root/'rounds').glob('round-*')):
+        raise ContractError('collection-only is for initial teacher data; use a new session after actor rounds exist')
+    checkpoint = update_round(cfg,root,seed=args.seed,device=cfg.raw['model']['device']) if args.mode=='train' and not getattr(args, 'collect_only', False) else None
+    if args.mode == 'eval' and getattr(args, 'resident_teacher', False) and args.policy:
+        checkpoint = Path(args.policy).parent
     bind_policy(backend,metadata,checkpoint,cfg,mode=args.mode,exploration=args.exploration)
     from .session_env import OwnerClient
     from pi05_rlt_rtc.adapters.cameras import create_cameras
@@ -313,12 +317,13 @@ def _run_session(args):
                     break
                 if signals.reason == 'operator_home':
                     pending_home = True
-                if args.mode == 'train':
+                if args.mode == 'train' and not getattr(args, 'collect_only', False):
                     owner.wait_ready()
                     checkpoint = update_round(cfg,root,seed=args.seed,device=cfg.raw['model']['device'])
                     bind_policy(backend,metadata,checkpoint,cfg,mode=args.mode,exploration=args.exploration)
-                    # Discard keys typed during updates; never buffer a motion request.
-                    keys.read()
+                    # Discard buffered start, but preserve stop/home/quit intent.
+                    with keys.lock:
+                        keys.pending = deque(k for k in keys.pending if k in ('q','x','e'))
                 print('Held/home in progress. e=home/open; x=hold; r=next episode when ready; q=quit.',flush=True)
             time.sleep(.02)
     return 0

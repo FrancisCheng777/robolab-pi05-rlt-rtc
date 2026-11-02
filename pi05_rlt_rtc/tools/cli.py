@@ -704,6 +704,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("session", help="human critical-phase rollout / hold / update loop")
     p.add_argument('--planner-url')
+    p.add_argument('--collect-only', action='store_true', help='collect labelled teacher episodes without updates')
+    p.add_argument('--resident-teacher', action='store_true', help='keep frozen teacher remote; train small local actor/critic')
     p.add_argument('--rpc-timeout-s', type=float, default=2.0)
     p.add_argument("--runtime-config", required=True)
     p.add_argument("--out", required=True)
