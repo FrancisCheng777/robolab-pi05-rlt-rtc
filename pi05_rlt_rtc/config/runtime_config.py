@@ -43,11 +43,15 @@ class RuntimeConfig:
         return self.raw["action_contract_id"]
 
     def wire_contract(self) -> dict:
-        return {"horizon": dataclasses.asdict(self.contract), "control_hz": self.control_hz,
+        result = {"horizon": dataclasses.asdict(self.contract), "control_hz": self.control_hz,
                 "rtc_mode": self.rtc_mode, "num_steps": self.num_steps,
                 "action_contract_id": self.action_contract_id, "prompt": self.raw["prompt"],
                 "camera_profile": "d405_wrist_to_base_v1",
                 "reward_scheme": self.raw.get("training", {}).get("reward_scheme", "rlt_binary")}
+        if self.raw.get('franka', {}).get('joint_command_mode') == 'bounded_reference':
+            result['joint_execution'] = {'mode': 'bounded_reference',
+                'reference_lead_rad': self.raw['franka'].get('reference_lead_rad', .05)}
+        return result
 
 
 def load_runtime_config(path: str | Path) -> RuntimeConfig:
@@ -92,8 +96,17 @@ def load_runtime_config(path: str | Path) -> RuntimeConfig:
     z_dim = raw["model"].get("z_dim", 2048)
     if type(z_dim) is not int or z_dim <= 0:
         raise ConfigError("model.z_dim must be a positive integer")
+    for key in ("compile_kernels", "compile_suffix"):
+        if type(raw["model"].get(key, False)) is not bool:
+            raise ConfigError(f"model.{key} must be boolean")
     if raw.get("policy", {}).get("kind") not in ("teacher", "actor"):
         raise ConfigError("policy.kind must be teacher or actor")
+    joint_mode = raw.get('franka', {}).get('joint_command_mode', 'measured_delta')
+    if joint_mode not in ('measured_delta', 'bounded_reference'):
+        raise ConfigError('unknown franka.joint_command_mode')
+    lead = raw.get('franka', {}).get('reference_lead_rad', .05)
+    if isinstance(lead, bool) or not isinstance(lead, (int, float)) or not math.isfinite(lead) or not 0 < lead <= .05:
+        raise ConfigError('franka.reference_lead_rad must be in (0, .05]')
     if type(raw['policy'].get('exploration', False)) is not bool:
         raise ConfigError('policy.exploration must be boolean')
     if raw.get('training', {}).get('reward_scheme', 'rlt_binary') not in ('rlt_binary', 'rlinf_signed'):

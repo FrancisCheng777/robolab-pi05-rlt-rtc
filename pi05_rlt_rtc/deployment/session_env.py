@@ -4,6 +4,7 @@ import json
 import select
 import subprocess
 import time
+import threading
 from pathlib import Path
 import numpy as np
 from pi05_rlt_rtc.adapters.cameras import validate_frames
@@ -12,12 +13,20 @@ from pi05_rlt_rtc.contracts.observation import ObservationSnapshot
 from pi05_rlt_rtc.runtime.scheduler import StepOutcome
 
 
+class OperatorInterrupt(Exception):
+    """A keyboard stop has latched; no more policy commands are allowed."""
+
+
 class OwnerClient:
     def __init__(self, cfg, *, mock=False):
+        self._rpc_lock = threading.RLock()
+        self.interrupted = threading.Event()
         settings = cfg.raw['session']
         command = [settings.get('control_python', 'python3'), '-m',
                    'pi05_rlt_rtc.deployment.control_owner', '--socket', cfg.raw['franka']['socket'],
                    '--collection-config', str(cfg.asset(settings['collection_config'], 'collection config')),
+                   '--joint-command-mode', cfg.raw['franka'].get('joint_command_mode', 'measured_delta'),
+                   '--reference-lead-rad', str(cfg.raw['franka'].get('reference_lead_rad', .05)),
                    '--mock' if mock else '--execute']
         self.process = subprocess.Popen(command, cwd=Path(__file__).resolve().parents[2],
                                         stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, bufsize=1)
@@ -30,7 +39,23 @@ class OwnerClient:
             self.close()
             raise
 
+    def interrupt(self):
+        # Latch BEFORE waiting for an in-flight RPC; action() cannot overtake hold.
+        self.interrupted.set()
+        self.rpc('hold')
+
+    def arm_episode(self):
+        with self._rpc_lock:
+            self.wait_ready()
+            self.interrupted.clear()
+
     def rpc(self, op, **fields):
+        with self._rpc_lock:
+            if op == 'action' and self.interrupted.is_set():
+                raise OperatorInterrupt('operator requested hold')
+            return self._rpc(op, **fields)
+
+    def _rpc(self, op, **fields):
         if self.process.poll() is not None:
             raise ContractError('CPU control owner exited; restart session explicitly')
         self.process.stdin.write(json.dumps({'op': op, **fields}, allow_nan=False)+'\n')

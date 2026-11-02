@@ -399,11 +399,14 @@ def cmd_serve_planner(args: argparse.Namespace) -> int:
         from pi05_rlt_rtc.deployment.runtime import config_from_args, make_backend
         from pi05_rlt_rtc.tools.planner_server import PlannerService, serve
         cfg = config_from_args(args)
-        backend, metadata = make_backend(cfg, args)
-        service = PlannerService(backend, cfg.contract, metadata=metadata)
-        print(f"serving real planner on {args.host}:{args.port}; feature={metadata['feature_version_id']}")
-        serve(service, host=args.host, port=args.port, shutdown_after=args.once or None,
-              token=os.environ.get("PI05_PLANNER_TOKEN"))
+        from concurrent.futures import ThreadPoolExecutor
+        # Loading/warmup and every CUDA request share a single long-lived thread.
+        with ThreadPoolExecutor(max_workers=1, thread_name_prefix='resident-gpu') as executor:
+            backend, metadata = executor.submit(make_backend, cfg, args).result()
+            service = PlannerService(backend, cfg.contract, metadata=metadata, executor=executor)
+            print(f"serving real planner on {args.host}:{args.port}; feature={metadata['feature_version_id']}", flush=True)
+            serve(service, host=args.host, port=args.port, shutdown_after=args.once or None,
+                  token=os.environ.get("PI05_PLANNER_TOKEN"))
         return 0
     from pi05_rlt_rtc.tools.planner_server import PlannerService, serve
 
@@ -700,6 +703,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=cmd_annotate_rollout)
 
     p = sub.add_parser("session", help="human critical-phase rollout / hold / update loop")
+    p.add_argument('--planner-url')
+    p.add_argument('--rpc-timeout-s', type=float, default=2.0)
     p.add_argument("--runtime-config", required=True)
     p.add_argument("--out", required=True)
     p.add_argument("--annotator", default="")

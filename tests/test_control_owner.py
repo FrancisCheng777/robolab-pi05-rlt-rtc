@@ -8,7 +8,8 @@ class Bridge:
         self.q=np.zeros(7); self.commands=[]
     def state(self):
         return {'q':self.q.tolist(),'state_sequence':1,
-                'calibration':{'joint_lower':[-2]*7,'joint_upper':[2]*7,'gripper_max_width':.085}}
+                'calibration':{'joint_lower':[-2]*7,'joint_upper':[2]*7,
+                               'max_tracking_error':[.05]*7,'gripper_max_width':.085}}
     def command(self, state, target, width):
         self.commands.append(target.copy()); return {'ok':True}
 
@@ -35,3 +36,77 @@ def test_action_and_home_require_confirmed_hold():
     owner=ControlOwner(Bridge(),SimpleNamespace(phase='homing',held=lambda s:False))
     with pytest.raises(RuntimeError):owner.action([0]*8)
     with pytest.raises(RuntimeError):owner.home()
+
+
+def test_bounded_reference_preserves_displacement_but_never_winds_up():
+    bridge = Bridge()
+    life = SimpleNamespace(phase='standby', held=lambda s: True,
+                           _settle=lambda *a: None)
+    owner = ControlOwner(bridge, life, joint_command_mode='bounded_reference')
+    # A stalled joint must not cause an unbounded remote target.
+    for _ in range(100):
+        audit = owner.action([.1]*7+[1])
+        assert np.max(np.abs(bridge.commands[-1]-bridge.q)) <= .05+1e-12
+    np.testing.assert_allclose(owner.target, .05)
+    assert audit['reference_limited']
+    bridge.q[:] = .01
+    owner.tick(); owner.tick()
+    np.testing.assert_allclose(owner.target, .05)  # refresh adds no delta
+    owner.action([.1]*7+[1])
+    np.testing.assert_allclose(owner.target, .055)
+    # Saturation discarded excess; a reversal responds immediately.
+    owner.action([-.1]*7+[1])
+    np.testing.assert_allclose(owner.target, .05)
+    owner.hold()
+    owner.action([.1]*7+[1])
+    np.testing.assert_allclose(owner.target, .015)  # no cross-episode residual
+    bridge.q[:] = -.1
+    owner.tick()
+    np.testing.assert_allclose(owner.target, -.05)  # also bound between policy ticks
+
+
+def test_bounded_reference_recovers_small_steps_in_deadzone_fixture():
+    # Deterministic controller fixture, not a calibrated robot simulation.
+    def run(mode):
+        b = Bridge()
+        owner = ControlOwner(b, SimpleNamespace(phase='standby', held=lambda s: True),
+                             joint_command_mode=mode)
+        for _ in range(60):
+            owner.action([.1]*7+[0])
+            error = owner.target-b.q
+            b.q += np.sign(error)*np.minimum(np.maximum(np.abs(error)-.01, 0), .3/15)
+        return b.q
+    np.testing.assert_allclose(run('measured_delta'), 0)
+    assert np.min(run('bounded_reference')) > .25
+
+
+def test_bounded_reference_matches_measured_decode_under_perfect_tracking():
+    b = Bridge()
+    owner = ControlOwner(b, SimpleNamespace(phase='standby', held=lambda s: True),
+                         joint_command_mode='bounded_reference')
+    for value in (.1, -.2, .3, 0):
+        expected = b.q+.05*value
+        owner.action([value]*7+[0])
+        np.testing.assert_allclose(owner.target, expected)
+        b.q = owner.target.copy()
+
+
+def test_bounded_reference_honors_calibration_and_joint_limits():
+    b = Bridge()
+    original = b.state
+    def state():
+        s = original(); s['calibration']['max_tracking_error'] = [.02]*7
+        return s
+    b.state = state
+    owner = ControlOwner(b, SimpleNamespace(phase='standby', held=lambda s: True),
+                         joint_command_mode='bounded_reference')
+    for _ in range(10): owner.action([1]*7+[0])
+    np.testing.assert_allclose(owner.target, .02)
+    owner.tracking = False; b.q[:] = 1.99
+    with pytest.raises(ValueError, match='joint limits'): owner.action([1]*7+[0])
+
+
+@pytest.mark.parametrize('limit', [0, -.01, .051, float('nan')])
+def test_reference_lead_cannot_exceed_accepted_bound(limit):
+    with pytest.raises(ValueError, match='reference lead'):
+        ControlOwner(Bridge(), None, joint_command_mode='bounded_reference', reference_lead_rad=limit)

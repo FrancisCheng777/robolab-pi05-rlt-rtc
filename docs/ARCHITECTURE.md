@@ -16,7 +16,9 @@ Critic 的动作是提交计划 U，实际混合执行序列 E 另存。奖励�
 
 ## 物理观测与动作
 
-q 是实测关节角。每个动作执行时重新读取 q，再加 `action[:7]*0.03`；夹爪宽度是 `(action[7]+1)*0.085/2`。9D 状态中的两个半宽只是同一个 Robotiq aperture 的派生表示。不要再应用速度积分或第二次 delta conversion。
+模型动作是相邻 15Hz 实测关节位移除以 `0.05`，夹爪宽度是 `(action[7]+1)*0.085/2`。9D 状态中的两个半宽只是同一个 Robotiq aperture 的派生表示。不要再次乘时间步长或施加 DeltaActions。
+
+执行方式由 `franka.joint_command_mode` 明确区分。默认 `measured_delta` 使用 `q_measured + action[:7]*0.05`。对低层力矩跟踪器，微小目标可能来不及执行就被下一次实测位置重置；`session` 支持 `bounded_reference`，仅在新的 15Hz 动作到达时向参考目标增加一次位移，100Hz 保活重复发送同一目标。参考领先实测位置的幅度不超过 `min(reference_lead_rad, max_tracking_error)`，配置最大为 0.05rad；截断的残余直接丢弃，hold 后重新以实测位置初始化。关节位置约束、速度和碰撞阈值仍有效。这是执行控制器适配，不是更改训练标签；配置写入 runtime contract，旧的策略/验收不能静默复用。直接 `FrankaEnvAdapter` 不支持该模式，会要求使用持久 owner 的 `session`。
 
 Kinect 与 D405 后台取帧，控制线程只读最新缓存。时间戳为主机接收时钟，不代表硬件曝光同步。相机方向、裁剪、letterbox 与采集流程一致。
 

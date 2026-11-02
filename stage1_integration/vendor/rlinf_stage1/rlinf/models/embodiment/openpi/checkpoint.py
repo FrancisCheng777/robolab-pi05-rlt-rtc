@@ -144,7 +144,10 @@ def load_full_weights(model, weights_path, *, expect_rlt: bool) -> None:
 
     from rlinf.utils.ckpt_convertor.openpi._core import as_state_dict
 
-    loaded = torch.load(str(weights_path), map_location="cpu", weights_only=False)
+    # Keep serialized tensors file-backed while copying into the model. The
+    # full 4.1B checkpoint plus an initialized model exceeds a 32-GiB host's
+    # available RAM if both are eagerly allocated. Tensor values are unchanged.
+    loaded = torch.load(str(weights_path), map_location="cpu", weights_only=False, mmap=True)
     state_dict = _convert_official_openpi_keys(
         _normalize_state_dict(as_state_dict(loaded)),
         weights_path,

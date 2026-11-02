@@ -17,8 +17,15 @@ from pi05_rlt_rtc.contracts.physical import JOINT_DELTA
 
 
 class ControlOwner:
-    def __init__(self, bridge, lifecycle, *, action_timeout=.25):
+    def __init__(self, bridge, lifecycle, *, action_timeout=.25,
+                 joint_command_mode='measured_delta', reference_lead_rad=.05):
+        if joint_command_mode not in ('measured_delta', 'bounded_reference'):
+            raise ValueError('unknown joint command mode')
+        if not np.isfinite(reference_lead_rad) or not 0 < reference_lead_rad <= .05:
+            raise ValueError('reference lead must be in (0, .05] rad')
         self.bridge, self.lifecycle = bridge, lifecycle
+        self.joint_command_mode = joint_command_mode
+        self.reference_lead_rad = reference_lead_rad
         self.tracking = False
         self.target = self.width = None
         self.last_action = 0.
@@ -26,6 +33,12 @@ class ControlOwner:
 
     def ready(self, state):
         return bool(not self.tracking and self.lifecycle.phase == 'standby' and self.lifecycle.held(state))
+
+    def _bound_reference(self, target, state):
+        from pi05_rlt_rtc.adapters.policy_reference import bound_joint_reference
+        return bound_joint_reference(target, state['q'],
+            tracking_limits=state['calibration']['max_tracking_error'],
+            lead_limit=self.reference_lead_rad)
 
     def action(self, action):
         state = self.bridge.state()
@@ -35,7 +48,19 @@ class ControlOwner:
         if a.shape != (8,) or not np.isfinite(a).all() or np.any(np.abs(a) > 1):
             raise ValueError('action must be finite [-1,1]^8')
         c = state['calibration']
-        target = np.asarray(state['q']) + JOINT_DELTA*a[:7]
+        measured = np.asarray(state['q'], dtype=float)
+        if measured.shape != (7,) or not np.isfinite(measured).all():
+            raise ValueError('invalid measured joint state')
+        anchor = measured
+        if self.joint_command_mode == 'bounded_reference' and self.tracking:
+            anchor = self.target
+        requested = anchor + JOINT_DELTA*a[:7]
+        target = requested.copy()
+        if self.joint_command_mode == 'bounded_reference':
+            # Realized-motion labels prescribe per-tick displacement. Retain
+            # untracked reference motion once per NEW action, never per refresh.
+            # Anti-windup: discard everything beyond the accepted lead bound.
+            target = self._bound_reference(target, state)
         if np.any(target < c['joint_lower']) or np.any(target > c['joint_upper']):
             raise ValueError('policy target violates accepted joint limits')
         self.target, self.width = target, float((a[7]+1)*.5*c['gripper_max_width'])
@@ -44,11 +69,15 @@ class ControlOwner:
         ack = self.bridge.command(state, self.target, self.width)
         return {'measured_q': state['q'], 'q_target': target.tolist(),
                 'gripper_width_target': self.width, 'normalized_action': a.tolist(),
+                'joint_command_mode': self.joint_command_mode,
+                'reference_lead_rad': (target-measured).tolist(),
+                'reference_limited': bool(np.any(np.abs(target-requested) > 1e-10)),
                 'state_sequence': state['state_sequence'], 'bridge_reply': ack,
                 'bridge_acknowledged': True}
 
     def hold(self):
         self.tracking = False
+        self.target = self.width = None
         self.lifecycle._settle(self.bridge.state(), 'standby')
 
     def home(self):
@@ -63,6 +92,10 @@ class ControlOwner:
             if time.monotonic()-self.last_action > self.action_timeout:
                 raise TimeoutError('policy action heartbeat expired')
             # Re-send exactly the latched target, never integrate delta again.
+            if self.joint_command_mode == 'bounded_reference':
+                # External displacement must not defeat the lead bound between
+                # policy ticks. This only removes excess; it adds no motion.
+                self.target = self._bound_reference(self.target, state)
             self.bridge.command(state, self.target, self.width)
         elif self.lifecycle.phase in ('init', 'standby'):
             self.bridge.hold(state)
@@ -94,7 +127,8 @@ def serve(args):
     try:
         lifecycle = CollectionSession(bridge, None, None, config, None, 'rlt-control',
                                      mock=args.mock, announce=lambda *a, **k: None)
-        owner = ControlOwner(bridge, lifecycle)
+        owner = ControlOwner(bridge, lifecycle, joint_command_mode=args.joint_command_mode,
+                             reference_lead_rad=args.reference_lead_rad)
         threading.Thread(target=reader, daemon=True).start()
         period = 1/config['teleop_hz']
         while True:
@@ -126,6 +160,8 @@ if __name__ == '__main__':
     parser.add_argument('--collection-config', required=True)
     parser.add_argument('--mock', action='store_true')
     parser.add_argument('--execute', action='store_true')
+    parser.add_argument('--joint-command-mode', choices=('measured_delta', 'bounded_reference'), default='measured_delta')
+    parser.add_argument('--reference-lead-rad', type=float, default=.05)
     args = parser.parse_args()
     if not args.mock and not args.execute:
         parser.error('real bridge ownership requires --execute')
