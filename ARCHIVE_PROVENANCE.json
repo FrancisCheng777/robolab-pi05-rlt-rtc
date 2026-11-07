@@ -1,0 +1,26 @@
+{
+  "source_date": "2026-11-07",
+  "base_commit": "124e43cdd0b35ea856f326be4dc5136bc9c58f6a",
+  "status": "archived, not promoted or newly validated",
+  "description": "Exact local source overlay; some source directories are partial snapshots. Historical results are not fresh validation. Data, weights, generated binaries and caches are excluded. Apply overlay only after comparing with its original deployed base.",
+  "files": [
+    {
+      "path": "experiments/afixed_fixed1000_20261103/pi05_rlt_rtc/config/runtime_config.py",
+      "source": "experiments/afixed_fixed1000_20261103/pi05_rlt_rtc/config/runtime_config.py",
+      "sha256": "6a8ac5bc496f1785bbe3c74ba45db12ec997e6735edddf78187b112a45f7fc9c",
+      "bytes": 7337
+    },
+    {
+      "path": "experiments/afixed_fixed1000_20261103/pi05_rlt_rtc/deployment/session.py",
+      "source": "experiments/afixed_fixed1000_20261103/pi05_rlt_rtc/deployment/session.py",
+      "sha256": "96835d1f0553f4aeae4b3f9b3201475cf435d167aec184a2f5adc44c03b06e27",
+      "bytes": 21829
+    },
+    {
+      "path": "experiments/afixed_fixed1000_20261103/tests/test_fixed_batch_updates.py",
+      "source": "experiments/afixed_fixed1000_20261103/tests/test_fixed_batch_updates.py",
+      "sha256": "97fd48770d4b87f811f72e17f5256b93392fa951cb7fce34b4777b01e0e1bab5",
+      "bytes": 3154
+    }
+  ]
+}
