@@ -1,0 +1,26 @@
+{
+  "source_date": "2026-11-07",
+  "base_commit": "124e43cdd0b35ea856f326be4dc5136bc9c58f6a",
+  "status": "archived, not promoted or newly validated",
+  "description": "Exact local source overlay; some source directories are partial snapshots. Historical results are not fresh validation. Data, weights, generated binaries and caches are excluded. Apply overlay only after comparing with its original deployed base.",
+  "files": [
+    {
+      "path": "experiments/afixed_successbc_20261104/pi05_rlt_rtc/deployment/success_bc.py",
+      "source": "experiments/afixed_successbc_20261104/pi05_rlt_rtc/deployment/success_bc.py",
+      "sha256": "203ca27bb60b674daf91e2c2a7d455feba70f1b70e153938d80e9310faddc918",
+      "bytes": 2949
+    },
+    {
+      "path": "experiments/afixed_successbc_20261104/pi05_rlt_rtc/deployment/training.py",
+      "source": "experiments/afixed_successbc_20261104/pi05_rlt_rtc/deployment/training.py",
+      "sha256": "14872af0a66aee67b14a9909f47f0aa0ea08cda49e6f0390dabdd1a504dddda3",
+      "bytes": 13647
+    },
+    {
+      "path": "experiments/afixed_successbc_20261104/tests/test_success_bc.py",
+      "source": "experiments/afixed_successbc_20261104/tests/test_success_bc.py",
+      "sha256": "1d0bda5ca26e34db970ac6050f4a8bdfea662c10b779381ef4a39bd9633b85fa",
+      "bytes": 2909
+    }
+  ]
+}
