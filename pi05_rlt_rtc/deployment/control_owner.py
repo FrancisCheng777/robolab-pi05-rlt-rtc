@@ -4,9 +4,11 @@ The policy supplies one delta at 15 Hz. Its absolute target is refreshed at the
 accepted teleop rate. Home/open is delegated unchanged to CollectionSession.
 """
 import argparse
+import faulthandler
 import json
 import queue
 import sys
+import signal
 import threading
 import time
 from pathlib import Path
@@ -111,6 +113,8 @@ class ControlOwner:
 
 
 def serve(args):
+    faulthandler.enable()
+    faulthandler.register(signal.SIGUSR1, all_threads=True)
     activate()
     from pi05_demo.transport import Bridge
     from pi05_demo.session import CollectionSession
@@ -124,6 +128,8 @@ def serve(args):
                 requests.put(json.loads(line))
         finally:
             requests.put({'op': 'close'})
+    operation = 'initialization'
+    request = None
     try:
         lifecycle = CollectionSession(bridge, None, None, config, None, 'rlt-control',
                                      mock=args.mock, announce=lambda *a, **k: None)
@@ -139,19 +145,34 @@ def serve(args):
                 request = None
             if request:
                 op = request['op']
+                operation = op
                 if op == 'close':
                     break
                 if op not in ('status', 'action', 'hold', 'home'):
                     raise ValueError('unknown control operation')
                 result = owner.action(request['action']) if op == 'action' else getattr(owner, op)()
-                print(json.dumps({'ok': True, 'result': result}), flush=True)
+                print(json.dumps({'ok': True, 'request_id': request.get('request_id'), 'result': result}), flush=True)
+            operation = 'heartbeat'
             owner.tick()
+            elapsed = time.monotonic()-started
+            if elapsed > .05:
+                print(json.dumps({'event': 'slow_control_cycle', 'elapsed_ms': elapsed*1000,
+                                  'operation': operation}), file=sys.stderr, flush=True)
             time.sleep(max(0., period-(time.monotonic()-started)))
     except BaseException as exc:
-        print(json.dumps({'ok': False, 'error': f'{type(exc).__name__}: {exc}'}), flush=True)
+        detail = f'{operation}: {type(exc).__name__}: {exc}'
+        print(json.dumps({'event': 'control_fault', 'operation': operation,
+                          'error': detail}), file=sys.stderr, flush=True)
+        print(json.dumps({'ok': False, 'error': detail}), flush=True)
         raise
     finally:
-        bridge.close()
+        primary_error = sys.exc_info()[1]
+        try:
+            bridge.close()
+        except Exception as exc:
+            print(f'bridge cleanup failed: {type(exc).__name__}: {exc}', file=sys.stderr, flush=True)
+            if primary_error is None:
+                raise
 
 
 if __name__ == '__main__':

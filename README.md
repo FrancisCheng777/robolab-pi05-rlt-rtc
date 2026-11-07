@@ -52,9 +52,9 @@ D405 `observation.images.wrist` → `base_0_rgb`，图像掩码 `[true,false,fal
 1. **采集与筛选。** 在数采仓库用已接受的采集入口收集约 150 条成功插入示范，覆盖合理初始位姿、插排位置与抓持差异。保留 session、原始 HDF5 和人工审核结果。把完整 session 留作验证，例如约 135 条训练、15 条验证；不要将同一 episode 的帧拆到两边。这个规模是启动方案，不保证任务覆盖充分。
 2. **导出 v2。** 用 pinned 数采 exporter 导出 `train/`、`validation/` 与统计文件。只在 train 拟合 norm stats。先运行 `scripts/check_v2_dataset.py`，确认动作、窗口、单相机映射和 mock 标识；生产训练禁止 `--allow-mock`。
 3. **4×A800 Stage 1。** 用 π0.5 基础权重初始化，全量训练 π0.5 + RLT 表征/重建模块。先预检和独立 synthetic smoke，再运行真实 SFT。RTC 在此阶段关闭。选择 checkpoint 时同时看独立验证集 flow loss、RLT 重建 loss 和后续冻结策略 rollout；batch 64、首轮最多 8000 steps；每 2000 步评估，不是最佳值承诺。
-4. **冻结与无运动验收。** 把完整 actor 导出目录拷到 4090。配置 checkpoint、norm stats 和本机解释器。先做资产校验、录制输入离线推理和全尺寸 RTC profile，不启动设备。当前 H/C/D=`10/5/2`，15 Hz，对应规划 deadline 约 **133 ms**；必须测到实际 full-VJP 延迟满足要求才用于连续控制，不能用 tiny 测试时间代替。
+4. **冻结与无运动验收。** 把完整 actor 导出目录拷到 4090。配置 checkpoint、norm stats 和本机解释器。先做资产校验、录制输入离线推理和全尺寸 RTC profile，不启动设备。仓库模板 H/C/D=`10/5/2`，15 Hz，对应规划 deadline 约 **133 ms**；必须测到实际 full-VJP 延迟满足要求才用于连续控制，不能用 tiny 测试时间代替。
 5. **固定 Stage-1 基线评估。** 在人工准备的初始条件下，用 `session --mode eval` 跑固定 teacher。每轮 `r` 接近，`b` 标记关键阶段，`a/c` 结束判定；未进入关键阶段的失败也保留在整轮成功率分母。评分后先 hold，不自动回位。需要回位时明确按 `h`，确认完成后再 `r`。
-6. **4090 Stage 2。** 新训练 session 先用 teacher 采样。默认至少 5 个有效关键阶段 episode 且至少 32 条可学习 chunk transition 后，actor 做 100 次 BC warmup，再做 100 次 critic 更新、25 次 actor 更新。之后每个新增有效 episode 都从累积 replay 更新 100 次 critic、25 次 actor，配置可调；BC warmup 单独计数。π0.5 和 RLT 全程冻结。
+6. **4090 Stage 2。** 新训练 session 先用 teacher 采样。模板配置每新增 10 个有效关键阶段 episode 且累计至少 32 条可学习 transition 后，在保持状态更新 1000 次 critic、250 次 actor；第一批另做 100 次 BC warmup。计数跨轮次与 resume 保持，失败/成功有效标签计入，中止或故障不计入；未配置 `update_every_episodes` 的旧配置保留每轮更新行为。π0.5 和 RLT 全程冻结。
 7. **独立评估与定版。** 固定一个 Stage-2 `policy.pt`，用新目录 `--mode eval --policy ...`；探索关闭，整个评估过程不更新权重。报告整轮成功率、关键阶段耗时、终止原因与安全/规划失败，保留所有开始的 episode。选择模型后按相同输入/归一化/RTC 配置部署。
 
 ### 推荐的训练调度

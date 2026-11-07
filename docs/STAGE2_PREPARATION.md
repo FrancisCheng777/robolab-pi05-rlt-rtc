@@ -1,5 +1,13 @@
 # 4090 Stage-2 preparation — 2026-11-02
 
+Integration note (2026-11-07): the station observations below are historical,
+not validation of the current commit. Current CPU/mock checks do not validate
+GPU latency or physical home stability. The station used D=5; the repository
+template remains D=2 and requires measured acceptance before deployment.
+CUDA Graphs, an independent Actor device override, reward-comparison tools and
+open-before-home remain archived/deferred. The main home path holds, returns
+home, then opens the gripper. No robot or real learner was started in this audit.
+
 The operator reports three physical trials: one complete insertion, two near-hole
 failures. This supports preparing a small Stage-2 pilot, not a reliable success-rate
 estimate. No real-policy RL update or automatic robot trial was run during setup.
@@ -48,8 +56,10 @@ Q weight0.1, BC weight5, reference dropout0.5, target tau0.005, gradient clip10,
 pre-tanh exploration std0.002. The existing local sparse reward is success1,
 otherwise0; per-control-tick gamma0.99 with duration-aware discounting.
 
-Existing local rollout scheduling: at least five eligible episodes and32 learnable
-transitions, BC warmup100, then100 critic/25 actor updates per new eligible episode.
+The current template batches ten NEW eligible episodes with at least 32 total
+learnable transitions, then 1000 critic / 250 actor updates; BC warmup100 runs
+only for the first batch. Existing configs without update_every_episodes retain
+per-episode scheduling. Config derivation preserves the accepted source settings.
 These scheduling numbers are local engineering choices, not verbatim RLinf settings.
 Updates run only between rollouts while held; they do not run concurrently with
 physical model inference. Obtain some genuine successes as well as failures.

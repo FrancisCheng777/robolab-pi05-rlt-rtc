@@ -106,8 +106,8 @@ class DelayedTransition:
     executed_source_plan_ids: np.ndarray  # [K] int
 
     # rewards and their true duration
-    primitive_rewards: np.ndarray  # [C] container
-    reward_valid_mask: np.ndarray  # [C]
+    primitive_rewards: np.ndarray  # [max(C,K)]; terminal committed tail may have C < K <= D+C
+    reward_valid_mask: np.ndarray  # same shape as primitive_rewards
     duration_ticks: int  # K
 
     # learning targets / flags

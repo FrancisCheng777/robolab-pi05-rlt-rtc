@@ -36,6 +36,7 @@ def manual_runtime(monkeypatch):
             self.backend, self.tick_probe, self.on_outcome = backend, tick_probe, on_outcome
             self.jobs_failed = 0
             self.jobs_completed = 0
+            self.timings = []
             self.alive = False
 
         def bind_contract(self, contract):
@@ -136,6 +137,22 @@ def test_thread_worker_preserves_thread_internal_stop_method():
     assert not worker.is_alive()
 
 
+def test_hold_failure_does_not_mask_first_control_fault(contract, manual_runtime):
+    class BrokenEnv(RecordingEnv):
+        def step(self, action):
+            raise RuntimeError('first state transport fault')
+
+        def stop(self):
+            raise TimeoutError('secondary hold timeout')
+
+    controller = mod.WallClockController(contract=contract, queue=ActionQueue(contract),
+        backend=NumberedReferencePlanner(contract), env=BrokenEnv(), tick_hz=10, record_events=True)
+    with pytest.raises(RuntimeError, match='first state transport fault'):
+        controller.run(3)
+    assert any(e['kind'] == 'stop_error' for e in controller.events)
+    assert not controller.queue.entries
+
+
 @pytest.mark.parametrize("error", [None, "RuntimeError: planner failed"])
 def test_response_after_monotonic_deadline_is_rejected_even_at_apply_tick(contract, manual_runtime, error):
     from tests.helpers import make_request, warm_start
@@ -190,3 +207,30 @@ def test_virtual_snapshots_match_authoritative_ticks_across_resets(contract):
 
     log = VirtualDelayScheduler(contract=contract, queue=ActionQueue(contract), backend=CheckingPlanner(contract), env=TerminalEnv()).run(8)
     assert log.episodes == 3
+
+
+@pytest.mark.parametrize('enabled', [True, False])
+@pytest.mark.parametrize('fail', [True, False])
+def test_control_loop_defers_cyclic_gc_and_restores_state(contract, manual_runtime, enabled, fail):
+    import gc
+    previous = gc.isenabled()
+    (gc.enable if enabled else gc.disable)()
+    observed = []
+    class Env(RecordingEnv):
+        def step(self, action):
+            observed.append(gc.isenabled())
+            if fail:
+                raise RuntimeError('test environment failure')
+            return super().step(action)
+    controller = mod.WallClockController(contract=contract, queue=ActionQueue(contract),
+        backend=NumberedReferencePlanner(contract), env=Env(), tick_hz=10)
+    try:
+        if fail:
+            with pytest.raises(RuntimeError, match='test environment failure'):
+                controller.run(2)
+        else:
+            controller.run(2)
+        assert observed and not any(observed)
+        assert gc.isenabled() is enabled
+    finally:
+        (gc.enable if previous else gc.disable)()
