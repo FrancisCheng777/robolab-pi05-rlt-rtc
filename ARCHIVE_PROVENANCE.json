@@ -1,0 +1,32 @@
+{
+  "source_date": "2026-11-07",
+  "base_commit": "124e43cdd0b35ea856f326be4dc5136bc9c58f6a",
+  "status": "archived, not promoted or newly validated",
+  "description": "Exact local source overlay; some source directories are partial snapshots. Historical results are not fresh validation. Data, weights, generated binaries and caches are excluded. Apply overlay only after comparing with its original deployed base.",
+  "files": [
+    {
+      "path": "experiments/droid_baseline_20261105/action_adapter.py",
+      "source": "experiments/droid_baseline_20261105/action_adapter.py",
+      "sha256": "ce164f54d973c73645b1ed1baccf8bd6f938816c3a8c459229dcd9d094be38f1",
+      "bytes": 1260
+    },
+    {
+      "path": "experiments/droid_baseline_20261105/run.py",
+      "source": "experiments/droid_baseline_20261105/run.py",
+      "sha256": "8ae3cea46e5238b5b4dff0264ad15e91e90569318aa56ef2b7f45a2c1ed4db8e",
+      "bytes": 8806
+    },
+    {
+      "path": "experiments/droid_baseline_20261105/server.py",
+      "source": "experiments/droid_baseline_20261105/server.py",
+      "sha256": "48351c22eaa330afc5fd4b406a98cd031964219323e09feba9cd08d53c3d86d7",
+      "bytes": 2671
+    },
+    {
+      "path": "experiments/droid_baseline_20261105/test_adapter.py",
+      "source": "experiments/droid_baseline_20261105/test_adapter.py",
+      "sha256": "30ca3e0a0b6cf077112fc5dafe348e603994bb0a7ab8d474ca7db25c8ec98e10",
+      "bytes": 1067
+    }
+  ]
+}
