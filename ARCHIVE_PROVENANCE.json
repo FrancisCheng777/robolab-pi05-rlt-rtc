@@ -1,0 +1,20 @@
+{
+  "source_date": "2026-11-07",
+  "base_commit": "124e43cdd0b35ea856f326be4dc5136bc9c58f6a",
+  "status": "archived, not promoted or newly validated",
+  "description": "Exact local source overlay; some source directories are partial snapshots. Historical results are not fresh validation. Data, weights, generated binaries and caches are excluded. Apply overlay only after comparing with its original deployed base.",
+  "files": [
+    {
+      "path": "experiments/anchor_refine_20261104/pi05_rlt_rtc/deployment/training.py",
+      "source": "experiments/anchor_refine_20261104/pi05_rlt_rtc/deployment/training.py",
+      "sha256": "64c7330628e05258d6663c0f3fae5be603e2a48f87fceec3efa124bee786f2b8",
+      "bytes": 15910
+    },
+    {
+      "path": "experiments/anchor_refine_20261104/tests/test_anchor_strength.py",
+      "source": "experiments/anchor_refine_20261104/tests/test_anchor_strength.py",
+      "sha256": "1854dbb88e41adfdb6f8c66f526a4849cd1a478705fa9cbddd446a071c3be3b8",
+      "bytes": 1941
+    }
+  ]
+}
