@@ -63,22 +63,12 @@ class FeaturePlanner:
         teacher = reference[self.contract.suffix_start:self.contract.suffix_end].copy()
         submitted, raw = teacher.copy(), None
         source = "reference_teacher"
-        if (self.actor is not None and request.request_id >= 0 and
-                (not self.critical_only or observation.sensor_metadata.get("rlt_active") is True)):
-            import torch
-            device = next(self.actor.parameters()).device
-            generator = torch.Generator(device=device).manual_seed(request.rng_seed)
-            with torch.no_grad():
-                output = self.actor.act(state=torch.as_tensor(state.actor_state_vector(), device=device),
-                    reference_suffix=torch.as_tensor(state.reference_suffix_vector(self.contract), device=device),
-                    deterministic=self.deterministic, generator=generator)
-            submitted = output.actions[0].cpu().numpy()
-            raw = output.raw[0].cpu().numpy()
-            source = "actor"
         result = PlanResult(submitted=submitted, reference_env_full=reference, source=source,
                             raw_actor_plan=raw, bc_target_plan=teacher,
                             bc_target_valid_mask=np.ones_like(teacher, bool),
                             teacher_source="frozen_pi05_rtc", planning_state=state)
+        apply_actor(result, self.actor, request, observation, self.contract,
+                    deterministic=self.deterministic, critical_only=self.critical_only)
         result.validate(self.contract)
         if np.any(np.abs(result.submitted) > 1) or np.any(np.abs(reference) > 1):
             raise ContractError("planner returned commands outside [-1,1]")
@@ -93,3 +83,26 @@ def state_from_plan_event(*, request, plan_event=None, **_):
         raise ContractError("planning state does not match capture")
     plan = plan_event.get("plan")
     return dataclasses.replace(state, plan_id=None if plan is None else plan.plan_id)
+
+
+def apply_actor(result, actor, request, observation, contract, *, deterministic, critical_only):
+    """Shared local/resident actor path; frozen teacher targets remain intact."""
+    if actor is None or request.request_id < 0 or (critical_only and observation.sensor_metadata.get('rlt_active') is not True):
+        return result
+    import torch
+    state = result.planning_state
+    if state is None:
+        raise ContractError('actor requires captured frozen planning features')
+    device = next(actor.parameters()).device
+    generator = torch.Generator(device=device).manual_seed(request.rng_seed)
+    with torch.no_grad():
+        output = actor.act(state=torch.as_tensor(state.actor_state_vector(), device=device),
+            reference_suffix=torch.as_tensor(state.reference_suffix_vector(contract), device=device),
+            deterministic=deterministic, generator=generator)
+    result.submitted = output.actions[0].cpu().numpy()
+    result.raw_actor_plan = output.raw[0].cpu().numpy()
+    result.source = 'actor'
+    result.validate(contract)
+    if not np.isfinite(result.submitted).all() or np.any(np.abs(result.submitted) > 1):
+        raise ContractError('actor produced invalid commands')
+    return result

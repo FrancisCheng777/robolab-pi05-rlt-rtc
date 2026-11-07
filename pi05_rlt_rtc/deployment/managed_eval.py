@@ -138,7 +138,7 @@ def stop_child(child, timeout=8.):
         child.kill(); child.wait(timeout=3.)
 
 
-def run_eval(config, directory, url):
+def run_eval(config, directory, url, *, mode='eval', session_out=None, resident_teacher=False, policy=None, collect_only=False):
     from pi05_rlt_rtc.config.runtime_config import load_runtime_config
     from .bridge_preflight import prepare_socket, probe_bridge
     cfg = load_runtime_config(config)
@@ -161,10 +161,16 @@ def run_eval(config, directory, url):
                 if time.monotonic() >= deadline:
                     raise RuntimeError(f"bridge 未就绪，查看 {directory/'bridge.log'}")
                 time.sleep(.1)
-        out = ROOT/'outputs/stage1_8000_eval'/time.strftime('%Y%m%d_%H%M%S')
+        out = Path(session_out) if session_out else ROOT/'outputs/stage1_8000_eval'/time.strftime('%Y%m%d_%H%M%S')
+        extra = ['--resident-teacher'] if resident_teacher else []
+        if collect_only:
+            extra += ['--collect-only']
+        if policy:
+            extra += ['--policy', str(policy)]
         session = subprocess.Popen([sys.executable, '-m', 'pi05_rlt_rtc.tools.cli', 'session',
             '--runtime-config', str(config), '--planner-url', url, '--rpc-timeout-s', '2',
-            '--mode', 'eval', '--no-exploration', '--annotator', 'heinrich', '--out', str(out), '--execute'], cwd=ROOT)
+            '--mode', mode, '--exploration' if mode == 'train' else '--no-exploration',
+            '--annotator', 'heinrich', '--out', str(out), '--execute', *extra], cwd=ROOT)
         return session.wait()
     finally:
         # Session EOF/SIGTERM closes owner and holds first; only then stop our bridge.

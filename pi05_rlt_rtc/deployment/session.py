@@ -127,8 +127,14 @@ def run_episode(cfg, backend, metadata, owner, cameras, keys, out, *, seed):
     env = SessionEnv(cfg, owner, cameras, trial_id)
     queue = ActionQueue(cfg.contract, fallback_policy='stop')
     def hook(tick, obs):
+        was_critical = signals.critical_start_tick is not None
         signals.poll(keys.read(), tick)
         env.rlt_active = signals.critical_start_tick is not None
+        if signals.outcome is None:
+            if tick == 0:
+                print(f'[运行中] 第 {trial_id} 轮已开始。b=进入关键阶段；a=失败；c=成功；e=停止并回位/张爪；x=保持；q=退出。', flush=True)
+            if env.rlt_active and not was_critical:
+                print('[关键阶段] 已收到 b。a=失败；c=成功；e=停止并回位/张爪；x=保持；q=退出。', flush=True)
         return obs, signals.outcome is not None
     controller = WallClockController(queue=queue, backend=backend, env=env,
         tick_hz=cfg.control_hz, seed=seed, episode_id=trial_id, record_events=True,
@@ -136,6 +142,7 @@ def run_episode(cfg, backend, metadata, owner, cameras, keys, out, *, seed):
     report = {'safety_stops':1, 'stop_request_acknowledged':False}
     error = None
     try:
+        print(f'[准备本轮] 第 {trial_id} 轮：正在读取观测、生成首段动作；e/x/q 可中止。就绪后会显示「运行中」。', flush=True)
         report.update(controller.run(settings['max_approach_ticks']+settings['max_critical_ticks']+1).summary())
     except OperatorInterrupt:
         signals.poll(keys.read(), env._tick)
@@ -146,16 +153,26 @@ def run_episode(cfg, backend, metadata, owner, cameras, keys, out, *, seed):
     finally:
         try:
             env.stop()
-            controller.drain_planner()
-            report["planner_errors"] = controller._worker.jobs_failed
         except BaseException as exc:
             error = error or exc
-            report['error'] = f'{type(exc).__name__}: {exc}'
+            report.setdefault('error', f'{type(exc).__name__}: {exc}')
+            report.setdefault('cleanup_errors', []).append(f'hold: {type(exc).__name__}: {exc}')
+        try:
+            controller.drain_planner()
+            report["planner_errors"] = controller._worker.jobs_failed
+            timings = controller._worker.timings
+            write_json(out/'planner_timings.json', timings)
+            report['last_planner_request'] = timings[-1] if timings else None
+        except BaseException as exc:
+            error = error or exc
+            report.setdefault('error', f'{type(exc).__name__}: {exc}')
+            report.setdefault('cleanup_errors', []).append(f'planner: {type(exc).__name__}: {exc}')
         try:
             recorder.close()
         except BaseException as exc:
             error = error or exc
-            report['error'] = f'{type(exc).__name__}: {exc}'
+            report.setdefault('error', f'{type(exc).__name__}: {exc}')
+            report.setdefault('cleanup_errors', []).append(f'recorder: {type(exc).__name__}: {exc}')
         report['stop_request_acknowledged'] = env.stop_request_acknowledged
         stop_events = [e for e in queue.ledger.events if e.get('event') in
                        ('trial_stopped_wallclock', 'plan_rejected', 'deadline_miss', 'planner_error')]
@@ -170,6 +187,8 @@ def run_episode(cfg, backend, metadata, owner, cameras, keys, out, *, seed):
                      report=report, contract=cfg.contract, trial_id=trial_id, hardware_commands=env.command_log)
     fault = error or any(report.get(k,0) for k in ('safety_stops','planner_errors','deadline_misses'))
     if fault:
+        if report.get('deadline_misses'):
+            print('[本轮已停止：规划超时] 下一段动作未及时返回，已保持。此轮中断不计入训练；需要重新按 r 开始新一轮。', flush=True)
         print('Controller stopped: '+json.dumps({key: report.get(key) for key in
             ('ticks_run', 'controller_stop_reason', 'deadline_misses', 'underruns', 'planner_errors', 'error')}), flush=True)
     outcome = 'aborted' if fault or not env.stop_request_acknowledged else signals.outcome or 'aborted'
@@ -181,6 +200,27 @@ def run_episode(cfg, backend, metadata, owner, cameras, keys, out, *, seed):
     return signals
 
 
+def training_batch(cfg, root):
+    """Count eligible episodes not yet consumed by a published learner round."""
+    root = Path(root)
+    labels = []
+    for directory in sorted((root/'episodes').glob('*/label')):
+        annotation = json.loads((directory/'annotation.json').read_text())
+        if annotation.get('eligible') and annotation.get('outcome') in ('success', 'failure'):
+            labels.append(str(directory.resolve()))
+    rounds = sorted((root/'rounds').glob('round-*'))
+    previous = rounds[-1] if rounds else None
+    used = json.loads((previous/'training_sources.json').read_text())['replay_directories'] if previous else []
+    if not set(used).issubset(labels):
+        raise ContractError('previously trained episodes are missing or no longer eligible')
+    pending = [label for label in labels if label not in set(used)]
+    every = cfg.raw['session'].get('update_every_episodes', 1)
+    required = max(every, cfg.raw['session']['warmup_episodes'] if previous is None else every)
+    # Include a startup backlog (or extra short episodes needed by the transition
+    # gate). Truncating to the first ten could otherwise leave that gate stuck.
+    return previous, used, pending, required
+
+
 def update_round(cfg, root, *, seed, device, mock=False):
     """Recover replay from committed labels; publish a round only after all saves.
 
@@ -190,44 +230,64 @@ def update_round(cfg, root, *, seed, device, mock=False):
     from pi05_rlt_rtc.learning.replay import ReplayBuffer
     from .training import train
     root = Path(root)
-    labels = []
-    total = 0
-    for directory in sorted((root/'episodes').glob('*/label')):
-        annotation = json.loads((directory/'annotation.json').read_text())
-        if annotation.get('eligible'):
-            labels.append(str(directory.resolve()))
-            total += len(ReplayBuffer.load(directory/'replay.pt').learnable_transitions())
     settings = cfg.raw['session']
-    rounds = sorted((root/'rounds').glob('round-*'))
-    previous = rounds[-1] if rounds else None
-    if previous and json.loads((previous/'training_sources.json').read_text())['replay_directories'] == labels:
-        return previous/'latest'
-    if len(labels) < settings['warmup_episodes'] or total < settings['min_replay_transitions']:
+    previous, used, pending, required = training_batch(cfg, root)
+    if len(pending) < required:
+        print(f'[采集进度] 本批新增有效轨迹 {len(pending)}/{required}；成功和失败计入，中断不计入。', flush=True)
         return previous/'latest' if previous else None
-    index = len(rounds)+1
+    labels = used + pending
+    total = sum(len(ReplayBuffer.load(Path(directory)/'replay.pt').learnable_transitions()) for directory in labels)
+    if total < settings['min_replay_transitions']:
+        print(f'[等待有效数据] 可学习 transition {total}/{settings["min_replay_transitions"]}，尚未训练。', flush=True)
+        return previous/'latest' if previous else None
+    index = len(list((root/'rounds').glob('round-*')))+1
     destination = root/'rounds'/f'round-{index:06d}'
     temporary = root/'rounds'/f'.pending-{uuid.uuid4().hex}'
+    updates = settings['updates_per_episode'] * (len(pending) if settings.get('update_every_episodes', 1) > 1 else 1)
+    status = {'round': index, 'new_episodes': len(pending), 'total_episodes': len(labels),
+              'critic_updates': updates, 'started_at_unix': time.time(), 'state': 'training'}
+    atomic_json(root/'batch_status.json', status)
+    print(f'[本批已满，可以训练] 新增 {len(pending)} 条有效轨迹；开始第 {index} 批训练，'
+          f'{updates} 次 critic 更新。暂停采集，完成后使用新权重；训练期间按 r 不会排队启动。', flush=True)
+    started = time.monotonic()
     args = SimpleNamespace(runtime_config=str(cfg.path), policy=None, replay=labels,
-        warmup_updates=0 if previous else settings['warmup_updates'], updates=settings['updates_per_episode'],
+        warmup_updates=0 if previous else settings['warmup_updates'], updates=updates,
         seed=seed, learner_device=device, resume=str(previous/'latest') if previous else None,
         out=str(temporary), allow_mock=mock)
-    train(args)
-    os.replace(temporary,destination)
+    try:
+        train(args)
+        os.replace(temporary,destination)
+    except BaseException:
+        atomic_json(root/'batch_status.json', {**status, 'state': 'failed', 'elapsed_s': time.monotonic()-started})
+        raise
+    elapsed = time.monotonic()-started
+    atomic_json(root/'batch_status.json', {**status, 'state': 'complete', 'elapsed_s': elapsed,
+                'checkpoint': str(destination/'latest')})
+    print(f'[训练完成] 第 {index} 批耗时 {elapsed:.1f} 秒；权重已保存。', flush=True)
     return destination/'latest'
 
 
 def bind_policy(backend, metadata, checkpoint, cfg, *, mode, exploration=None):
     if checkpoint is not None:
-        from pi05_rlt_rtc.learning.checkpoint import PolicyBundle
-        bundle = PolicyBundle.load(Path(checkpoint)/'policy.pt')
-        if (bundle.feature_version_id != metadata['feature_version_id'] or
-            bundle.norm_stats_sha256 != metadata['norm_stats_sha256'] or
-            bundle.extra.get('mock') != metadata['mock'] or
-            bundle.extra.get('runtime_contract') != cfg.wire_contract()):
-            raise ContractError('session checkpoint differs from frozen features/runtime')
-        backend.actor = bundle.build_actor(device=cfg.raw['model']['device'])
-        backend.policy_version_id = bundle.policy_version_id
-        metadata.update(policy_kind='actor',policy_version_id=bundle.policy_version_id)
+        # Published round directories are immutable. Reusing a round must not
+        # rebuild its actor (or pretend a new version was trained) after a trial.
+        actor_device = cfg.raw['model']['device']
+        binding = (str(Path(checkpoint).resolve()), str(actor_device),
+                   metadata['feature_version_id'], metadata['norm_stats_sha256'],
+                   metadata['mock'], json.dumps(cfg.wire_contract(), sort_keys=True))
+        if getattr(backend, '_bound_policy_checkpoint', None) != binding or backend.actor is None:
+            from pi05_rlt_rtc.learning.checkpoint import PolicyBundle
+            bundle = PolicyBundle.load(Path(checkpoint)/'policy.pt')
+            if (bundle.feature_version_id != metadata['feature_version_id'] or
+                bundle.norm_stats_sha256 != metadata['norm_stats_sha256'] or
+                bundle.extra.get('mock') != metadata['mock'] or
+                bundle.extra.get('runtime_contract') != cfg.wire_contract()):
+                raise ContractError('session checkpoint differs from frozen features/runtime')
+            backend.actor = bundle.build_actor(device=actor_device)
+            backend.policy_version_id = bundle.policy_version_id
+            backend._bound_policy_checkpoint = binding
+            print(f'[新权重已就绪] {bundle.policy_version_id[:26]}；下一轮按 r 开始，b 后由此 Actor 接管。', flush=True)
+        metadata.update(policy_kind='actor',policy_version_id=backend.policy_version_id)
     backend.critical_only = True
     enabled = mode == 'train' and (exploration is not False)
     backend.deterministic = not enabled
@@ -243,7 +303,7 @@ def _run_session(args):
         raise ContractError('--annotator is required')
     if args.mode == "train" and args.policy:
         raise ContractError("training resumes from session rounds; use --policy only for fixed-policy evaluation")
-    if getattr(args, 'planner_url', None) and (args.mode != 'eval' or cfg.raw['policy']['kind'] != 'teacher'):
+    if getattr(args, 'planner_url', None) and not getattr(args, 'resident_teacher', False) and (args.mode != 'eval' or cfg.raw['policy']['kind'] != 'teacher'):
         raise ContractError('resident planner sessions currently support teacher eval only')
     from .bridge_preflight import probe_bridge
     probe_bridge(cfg.raw['franka']['socket'], json.loads(
@@ -261,7 +321,11 @@ def _run_session(args):
         raise ContractError('session directory belongs to different model/config/mode')
     atomic_json(manifest,identity)
     metadata.update(annotator=args.annotator,mode=args.mode)
-    checkpoint = update_round(cfg,root,seed=args.seed,device=cfg.raw['model']['device']) if args.mode=='train' else None
+    if getattr(args, 'collect_only', False) and list((root/'rounds').glob('round-*')):
+        raise ContractError('collection-only is for initial teacher data; use a new session after actor rounds exist')
+    checkpoint = update_round(cfg,root,seed=args.seed,device=cfg.raw['model']['device']) if args.mode=='train' and not getattr(args, 'collect_only', False) else None
+    if args.mode == 'eval' and getattr(args, 'resident_teacher', False) and args.policy:
+        checkpoint = Path(args.policy).parent
     bind_policy(backend,metadata,checkpoint,cfg,mode=args.mode,exploration=args.exploration)
     from .session_env import OwnerClient
     from pi05_rlt_rtc.adapters.cameras import create_cameras
@@ -287,24 +351,29 @@ def _run_session(args):
                 pending_home = True
                 if 'h' in commands:
                     owner.interrupt()
-                print('Hold requested; returning home once hold is confirmed. x cancels, q exits.', flush=True)
+                print('[复位请求] 等待保持后回初始位姿并张爪；x 取消，q 退出。', flush=True)
             if pending_home:
+                if 'r' in commands:
+                    print('[尚未开始] 正在等待回位，r 未执行；看到「回位完成」后请重新按 r。', flush=True)
                 if operator_start(keys, owner, home=True):
                     pending_home = False
                     home_in_progress = True
-                    print('Returning to collection home/open; x=hold, q=quit.', flush=True)
+                    print('[复位中] 正在回初始位姿，完成后张爪；x=保持，q=退出。', flush=True)
                 time.sleep(.02)
                 continue
             if home_in_progress:
                 if owner.rpc('status')['ready']:
                     home_in_progress = False
-                    print('Home/open complete. r=next episode; q=quit.', flush=True)
+                    print('[回位完成｜等待指令] 已回到采集初始位姿并张爪；请按 r 开始新一轮，q 退出。', flush=True)
+                if 'r' in commands:
+                    print('[尚未开始] 回位阶段收到的 r 不会排队执行；请现在重新按 r。' if not home_in_progress else '[尚未开始] 仍在回位，r 未执行；回位完成后请重新按 r。', flush=True)
                 # Never buffer r pressed while home is still underway.
                 time.sleep(.02)
                 continue
             if 'r' in commands:
+                print('[收到 r] 正在检查就绪状态；e/x/q 可中止。', flush=True)
                 if not operator_start(keys, owner):
-                    print('Wait for confirmed hold.',flush=True)
+                    print('[尚未开始] 未确认保持就绪，或有停止指令待处理；就绪后请重新按 r。',flush=True)
                     continue
                 number = len(list((root/'episodes').glob('*')))+1
                 signals = run_episode(cfg,backend,metadata,owner,cameras,keys,
@@ -313,13 +382,15 @@ def _run_session(args):
                     break
                 if signals.reason == 'operator_home':
                     pending_home = True
-                if args.mode == 'train':
+                if args.mode == 'train' and not getattr(args, 'collect_only', False):
                     owner.wait_ready()
                     checkpoint = update_round(cfg,root,seed=args.seed,device=cfg.raw['model']['device'])
                     bind_policy(backend,metadata,checkpoint,cfg,mode=args.mode,exploration=args.exploration)
-                    # Discard keys typed during updates; never buffer a motion request.
-                    keys.read()
-                print('Held/home in progress. e=home/open; x=hold; r=next episode when ready; q=quit.',flush=True)
+                    # Discard buffered start, but preserve stop/home/quit intent.
+                    with keys.lock:
+                        keys.pending = deque(k for k in keys.pending if k in ('q','x','e'))
+                print('[本轮结束｜等待回位] e=回位/张爪；x=保持；q=退出。' if pending_home else
+                      '[本轮结束｜已保持] e=回位/张爪；r=开始新一轮；q=退出。', flush=True)
             time.sleep(.02)
     return 0
 

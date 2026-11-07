@@ -26,11 +26,20 @@ def config_from_args(args):
 
 def make_backend(cfg, args):
     if getattr(args, "planner_url", None):
-        if getattr(args, "policy", None):
+        if getattr(args, "policy", None) and not getattr(args, 'resident_teacher', False):
             raise ContractError("select --policy on the planner host; the remote client uses policy.kind and optional expected_policy_version_id")
         from pi05_rlt_rtc.deployment.rpc import RemotePlanner
-        backend = RemotePlanner(args.planner_url, cfg, timeout=getattr(args, "rpc_timeout_s", 30.),
+        teacher_cfg = cfg
+        if getattr(args, 'resident_teacher', False):
+            teacher_policy = {'kind':'teacher', 'checkpoint':None}
+            if cfg.raw['policy'].get('expected_feature_version_id'):
+                teacher_policy['expected_feature_version_id'] = cfg.raw['policy']['expected_feature_version_id']
+            teacher_cfg = dataclasses.replace(cfg, raw={**cfg.raw, 'policy': teacher_policy})
+        backend = RemotePlanner(args.planner_url, teacher_cfg, timeout=getattr(args, "rpc_timeout_s", 30.),
                                 token=os.environ.get("PI05_PLANNER_TOKEN"))
+        if getattr(args, 'resident_teacher', False):
+            from .rpc import ResidentTeacherActor
+            backend = ResidentTeacherActor(backend, cfg)
         return backend, backend.metadata
     from pi05_rlt_rtc.deployment.model_loader import load_planner
     return load_planner(cfg)

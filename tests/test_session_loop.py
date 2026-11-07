@@ -18,7 +18,7 @@ def episode_setup(monkeypatch, manual_runtime):
     cfg,toy,backend,metadata=backend_double()
     cfg=dataclasses.replace(cfg, raw={**cfg.raw,
         'model':{**cfg.raw['model'],'z_dim':16,'device':'cpu'},
-        'session':{**cfg.raw['session'],'warmup_episodes':1,'min_replay_transitions':2,
+        'session':{**cfg.raw['session'],'warmup_episodes':1,'update_every_episodes':1,'min_replay_transitions':2,
                    'warmup_updates':1,'updates_per_episode':1}})
     metadata.update(mock=True,annotator='mock protocol test')
     class Env(ToyDelayedControlEnv):
@@ -40,6 +40,26 @@ class Keys:
     def __init__(self, schedule):self.tick=0;self.schedule=schedule
     def read(self):
         keys=self.schedule.get(self.tick,[]);self.tick+=1;return keys
+
+
+def test_episode_report_keeps_primary_fault_when_hold_also_fails(episode_setup, tmp_path, monkeypatch):
+    cfg, toy, backend, metadata = episode_setup
+    original = session_env.SessionEnv
+    class BrokenEnv(original):
+        def step(self, action):
+            raise RuntimeError('first state transport fault')
+
+        def stop(self):
+            raise TimeoutError('secondary hold timeout')
+    monkeypatch.setattr(session_env, 'SessionEnv', BrokenEnv)
+    out = tmp_path/'fault'
+    with pytest.raises(RuntimeError, match='first state transport fault'):
+        session.run_episode(cfg, backend, metadata, None, None, Keys({}), out, seed=1)
+    report = json.loads((out/'controller_report.json').read_text())
+    assert report['error'] == 'RuntimeError: first state transport fault'
+    assert report['cleanup_errors'][0] == 'hold: TimeoutError: secondary hold timeout'
+    assert report['stop_request_acknowledged'] is False
+    assert json.loads((out/'label/annotation.json').read_text())['eligible'] is False
 
 
 def test_critical_phase_reward_terminal_partial_chunk_and_no_entry(episode_setup,tmp_path):
@@ -119,6 +139,55 @@ def test_planner_must_drain_before_updates():
     fake=SimpleNamespace(_worker=SimpleNamespace(stop=lambda **kw:None,is_alive=lambda:True))
     with pytest.raises(ContractError,match='drain'):
         WallClockController.drain_planner(fake,timeout=0)
+
+
+def test_training_waits_for_each_ten_new_eligible_episodes(episode_setup, tmp_path):
+    cfg, _, backend, metadata = episode_setup
+    cfg = dataclasses.replace(cfg, raw={**cfg.raw, 'session': {
+        **cfg.raw['session'], 'warmup_episodes': 10,
+        'update_every_episodes': 10, 'updates_per_episode': 2}})
+    root = tmp_path/'batches'
+    # An aborted trial must not advance the batch counter.
+    session.run_episode(cfg, backend, metadata, None, None, Keys({20: ['e']}),
+                        root/'episodes'/'000000', seed=0)
+    previous = None
+    for index in range(1, 21):
+        session.run_episode(cfg, backend, metadata, None, None,
+                            Keys({5: ['b'], 30: ['c' if index % 3 else 'a']}),
+                            root/'episodes'/f'{index:06d}', seed=index)
+        checkpoint = session.update_round(cfg, root, seed=1, device='cpu', mock=True)
+        if index % 10:
+            assert checkpoint == previous
+        else:
+            assert checkpoint is not None and checkpoint != previous
+            bundle = PolicyBundle.load(checkpoint/'policy.pt')
+            assert bundle.training_counts['updates'] == index * 2
+            assert bundle.training_counts['warmup_updates'] == 1
+            previous = checkpoint
+            assert session.update_round(cfg, root, seed=1, device='cpu', mock=True) == checkpoint
+        assert len(list((root/'rounds').glob('round-*'))) == index // 10
+
+
+def test_unchanged_checkpoint_keeps_actor_and_does_not_announce_new_weights(episode_setup, tmp_path, capsys):
+    cfg, _, backend, metadata = episode_setup
+    root = tmp_path/'binding'
+    session.run_episode(cfg, backend, metadata, None, None, Keys({5: ['b'], 30: ['c']}),
+                        root/'episodes'/'000001', seed=1)
+    checkpoint = session.update_round(cfg, root, seed=1, device='cpu', mock=True)
+    cfg = dataclasses.replace(cfg, raw={**cfg.raw, 'model': {
+        **cfg.raw['model'], 'device': 'cpu'}})
+    session.bind_policy(backend, metadata, checkpoint, cfg, mode='train')
+    original_actor = backend.actor
+    assert next(original_actor.parameters()).device.type == 'cpu'
+    capsys.readouterr()
+    # A failed or successful trial below the next update gate returns this same path.
+    session.bind_policy(backend, metadata, checkpoint, cfg, mode='train')
+    assert backend.actor is original_actor
+    assert '新权重已就绪' not in capsys.readouterr().out
+    assert metadata['policy_version_id'] == backend.policy_version_id
+    # Evaluation/exploration settings still change without rebuilding the actor.
+    session.bind_policy(backend, metadata, checkpoint, cfg, mode='eval')
+    assert backend.actor is original_actor and backend.deterministic
 
 
 def test_late_handoff_without_any_new_plan_is_not_learning_data(episode_setup,tmp_path):

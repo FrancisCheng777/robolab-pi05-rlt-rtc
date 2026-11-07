@@ -184,7 +184,13 @@ class DelayedTransitionAssembler:
         )
 
         # ---- find the next capture / terminal boundary
-        terminal_tick = self._terminal_tick_in_window(capture)
+        # The last committed action may still be executing when the operator
+        # ends the episode and the next request has not produced a plan. Its
+        # real terminal window can include D pending ticks + up to C own ticks.
+        # Never invent a successor state or include a later accepted action.
+        terminal_limit = (self.contract.delay + self.contract.chunk
+                          if next_rid is None else self.contract.chunk)
+        terminal_tick = self._terminal_tick_in_window(capture, terminal_limit)
         if terminal_tick is not None:
             terminal_record = self.ticks[terminal_tick]
             K = terminal_tick - capture + 1
@@ -233,15 +239,16 @@ class DelayedTransitionAssembler:
             base["next_plan_id"] = int(next_plan.plan_id)
             base["next_planning_state"] = self.planning_state_for(next_rid)
 
-        if K <= 0 or K > self.contract.chunk:
+        max_duration = terminal_limit if terminal_tick is not None else self.contract.chunk
+        if K <= 0 or K > max_duration:
             base["censor_reason"] = f"invalid_duration:K={K}"
             return self._with_state(base, rid)
 
         # ---- executed trace and reward window
         trace_rows: list[np.ndarray] = []
         trace_sources: list[int] = []
-        rewards = np.zeros((self.contract.chunk,), dtype=np.float32)
-        reward_valid = np.zeros((self.contract.chunk,), dtype=bool)
+        rewards = np.zeros((max(self.contract.chunk, K),), dtype=np.float32)
+        reward_valid = np.zeros_like(rewards, dtype=bool)
         for k in range(K):
             tick_record = self.ticks.get(capture + k)
             if tick_record is None:
@@ -320,8 +327,8 @@ class DelayedTransitionAssembler:
             base["accepted"] = base.get("accepted", False)
         return DelayedTransition(**base)
 
-    def _terminal_tick_in_window(self, capture: int) -> int | None:
-        for k in range(self.contract.chunk):
+    def _terminal_tick_in_window(self, capture: int, limit: int) -> int | None:
+        for k in range(limit):
             record = self.ticks.get(capture + k)
             if record is not None and (record.get("terminated") or record.get("truncated")):
                 return capture + k

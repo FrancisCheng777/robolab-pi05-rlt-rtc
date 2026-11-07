@@ -115,6 +115,9 @@ def load_runtime_config(path: str | Path) -> RuntimeConfig:
     if not isinstance(noise, (int,float)) or not math.isfinite(noise) or noise < 0:
         raise ConfigError('exploration_std must be finite and nonnegative')
     if 'session' in raw:
+        every = raw['session'].get('update_every_episodes', 1)
+        if type(every) is not int or every < 1:
+            raise ConfigError('session.update_every_episodes must be a positive integer')
         for key in ('warmup_episodes','min_replay_transitions','warmup_updates','updates_per_episode',
                     'max_approach_ticks','max_critical_ticks'):
             if type(raw['session'].get(key)) is not int or raw['session'][key] <= 0:

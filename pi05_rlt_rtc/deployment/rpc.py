@@ -126,3 +126,37 @@ class RemotePlanner:
         if np.any(np.abs(out.submitted) > 1) or np.any(np.abs(out.reference_env_full) > 1):
             raise ContractError("remote planner returned commands outside [-1,1]")
         return out
+
+
+class ResidentTeacherActor:
+    """Keep the frozen VLA in its existing process; train/deploy only the small AC.
+
+    The remote service always sees its own teacher policy ID. Local rollout IDs
+    identify the actor that actually submitted commands. Stage-2 never mutates
+    or replaces the resident teacher's weights.
+    """
+    is_mock = False
+
+    def __init__(self, teacher, cfg):
+        from pi05_rlt_rtc.learning.planning_state import PlanningStateSpec
+        self.teacher, self.cfg = teacher, cfg
+        self.spec = PlanningStateSpec.from_contract(cfg.contract, z_dim=cfg.raw['model'].get('z_dim', 2048))
+        self.actor = None
+        self.critical_only = True
+        self.deterministic = True
+        self.metadata = dict(teacher.metadata)
+        self.policy_version_id = self.metadata['policy_version_id']
+
+    def plan(self, request, observation, pending_prefix, prev_context):
+        from .planner import apply_actor
+        if request.policy_version_id != self.policy_version_id:
+            raise ContractError('request policy version differs from the local actor')
+        forwarded = dataclasses.replace(request, policy_version_id=self.teacher.metadata['policy_version_id'])
+        result = self.teacher.plan(forwarded, observation, pending_prefix, prev_context)
+        state = result.planning_state
+        if state is None or state.spec != self.spec:
+            raise ContractError('resident teacher lacks the expected planning features')
+        result.planning_state = dataclasses.replace(state,
+            ids=dataclasses.replace(state.ids, policy_version_id=request.policy_version_id))
+        return apply_actor(result, self.actor, request, observation, self.cfg.contract,
+                           deterministic=self.deterministic, critical_only=self.critical_only)
