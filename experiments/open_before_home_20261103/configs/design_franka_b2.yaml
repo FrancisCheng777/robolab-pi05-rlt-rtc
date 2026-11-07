@@ -1,0 +1,121 @@
+# DESIGN CONTRACT ONLY: 由 pi05-rlt-rtc 的适配层解析；不是可直接运行的 RLinf YAML。
+# 运行入口：pi05-rlt-rtc config-validate --config configs/design_franka_b2.yaml
+# 本文件没有默认指向真实权重，也不代表训练/延迟参数已经实测。
+schema_version: "pi05-rlt-rtc-design-v1"
+implementation_status: "specification_only"   # parsed by pi05_rlt_rtc.config.design_config
+
+source:
+  rlinf_repository: "https://github.com/RLinf/RLinf"
+  rlinf_commit: "c70606f08cdca259b8dec03d4430926b5b8fac9d"
+  official_openpi_commit: "215abfb217dbac7d5f1273282331b9b1866c0479"
+  official_rtc_commit: "9296f31d62d5bfeb5779dcb2f9bcf71ca37f448b"
+
+assets:
+  base_checkpoint_path: null       # 必填，先做 keys/layout 审计
+  stage1_checkpoint_path: null     # Stage 2 必填，必须含完整 rlt_module
+  dataset_path: null               # 必填，包含实际 meta/data
+  dataset_revision: null           # 安装时核对，不能填 latest 冒充固定版本
+  norm_stats_path: null            # train 划分统计量
+  norm_stats_sha256: null
+
+environment:
+  id: "PandaRobotiqPlugInsertion-v1"
+  control_mode: "measured_joint_delta_robotiq_width"
+  control_frequency_hz: 15
+  bridge_frequency_hz: 1000
+  action_dimension: 8
+  proprio_dimension: 9
+  cameras: ["main", "wrist"]      # 语义名，adapter 负责映射真实 key
+  prompt: "insert the plug into the power strip"
+  number_of_environments: 1
+  auto_reset: false
+  expert_takeover: false
+
+feature_model:
+  runtime: "rlinf_openpi_pytorch"
+  dataconfig: "pi05_rlt_panda_robotiq_joint"
+  model_action_dimension: 32
+  reference_horizon: 10
+  return_full_reference_horizon: true
+  denoising_steps: 5
+  precision: "bf16"                # 必须在硬件上验证
+  token_dimension: 2048
+  prefix_sequence_capacity: 1024
+  frozen_in_stage2: true
+  single_prefix_pass: true
+  use_reconstruction_decoder_in_stage2: false
+
+integration:
+  # B2: H=10/C=5/D=2 仅为初始测试设计，profile 不满足就拒绝墙钟部署。
+  submitted_chunk_length: 5
+  request_period_ticks: 5
+  fixed_delay_ticks: 2
+  delay_padding_capacity: 5
+  actor_reference_slice: "D:D+C"
+  final_plan_composition: "pending_prefix || submitted_plan || reference_tail"
+  next_rtc_source: "previous_final_composed_plan"
+  delay_policy: "fixed_per_episode"
+  late_response_policy: "reject_and_safe_fallback_or_stop"
+  replay_action_semantics: "accepted_submitted_plan"
+  reward_window: "capture_tick_to_next_capture_tick"
+  actual_duration_discount: true
+  include_pending_queue_in_state: true
+  include_previous_plan_in_state: true
+  include_current_full_reference_in_critic: true
+  reference_dropout_applies_only_to_actor_reference_branch: true
+
+rtc:
+  mode: "full_vjp"                 # 新增功能；固定 RLinf 目前只实现 approx
+  canonical_time_direction: "noise_to_data"
+  native_time_adapter: "t_native = 1 - tau; v_canonical = -v_native"
+  prefix_weight_schedule: "exp"
+  guidance_weight_cap: 5.0         # 调试起点，不是跨硬件最优值
+  zero_guidance_on_padding_targets: true
+  input_gradients_required: true
+  model_parameter_gradients_enabled: false
+  allow_outer_torch_inference_mode: false
+  retain_graph_across_denoising_steps: false
+
+learning:
+  actor_kind: "queue_aware_direct_chunk_mlp"  # 需要新增并注册
+  critic_kind: "twin_q_augmented_planning_state"
+  base_loss_family: "rlt_ac"
+  ac_architecture: "rlinf_mlp_queue_v2"
+  critic_actor_ratio: 4
+  actor_precision: "fp32"
+  critic_precision: "fp32"
+  actor_learning_rate: 0.0003
+  critic_learning_rate: 0.0003
+  gamma_per_control_tick: 0.99
+  target_ema_tau: 0.005
+  entropy_weight: 0.0
+  fixed_exploration_std_before_tanh: 0.002
+  reference_dropout_probability: 0.5
+  require_bc_warmup_before_actor_takeover: true
+  bc_compares_deployed_bounded_actions: true
+  bc_q_weight_schedule: "constant_rlinf_q0.1_bc5"
+  actor_clip_grad: 10.0
+  critic_clip_grad: 10.0
+  total_updates: null              # 根据资源与真实数据预算填写
+  replay_capacity: null
+  save_replay_for_resume: true
+  filter_censored_transitions: true
+
+runtime:
+  clock_mode: "wall_clock"     # 最后还必须用 wall_clock 单独验收
+  one_inflight_request_per_environment: true
+  controller_owns_tick_and_queue: true
+  require_acceptance_ack: true
+  atomic_policy_version_swap: true
+  torch_compile: false
+  cuda_graph: false
+  forward_only_acceleration_engine: false
+  measure_with_concurrent_learner: true
+
+evaluation:
+  deterministic_actor: true
+  expert_takeover: false
+  report_failure_trials: true
+  report_deadline_miss_rate: true
+  require_export_reload_test: true
+  results_prepopulated: false
