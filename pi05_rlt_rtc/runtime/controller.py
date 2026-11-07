@@ -15,8 +15,11 @@ semantics being tested.
 from __future__ import annotations
 
 import dataclasses
+import contextlib
+import gc
 import queue as thread_queue
 import threading
+import sys
 import time
 from typing import Any, Callable
 
@@ -35,6 +38,23 @@ from pi05_rlt_rtc.contracts.plan import (
 from pi05_rlt_rtc.contracts.spaces import ENV_ACTION_DIM, HorizonContract
 from pi05_rlt_rtc.runtime.queue import ActionQueue
 from pi05_rlt_rtc.runtime.scheduler import EnvProtocol, PlanResult, PlannerProtocol
+
+
+@contextlib.contextmanager
+def _defer_cyclic_gc():
+    """Avoid stop-the-world cycle scans during the one active control loop.
+
+    Reference counting still releases ordinary objects. Restore the caller's GC
+    policy after environment stop, including warmup/step failures. The hardware
+    session lock prevents concurrent control loops in this process.
+    """
+    enabled = gc.isenabled()
+    gc.disable()
+    try:
+        yield
+    finally:
+        if enabled:
+            gc.enable()
 
 
 def _percentile(values: list[float], pct: float) -> float | None:
@@ -87,6 +107,9 @@ class PlannerWorker(threading.Thread):
         self.jobs_failed = 0
         self.busy = False
         self.last_latency_seconds: float | None = None
+        # Include in-flight work that finishes after hold; it must not be
+        # committed, but is often the very request needed to diagnose a miss.
+        self.timings: list[dict] = []
 
     def submit(self, job: PlannerJob) -> None:
         if self._stop_event.is_set():
@@ -121,6 +144,16 @@ class PlannerWorker(threading.Thread):
             finished = time.monotonic()
             self.busy = False
             self.last_latency_seconds = finished - started
+            self.timings.append({
+                "request_id": job.request.request_id,
+                "capture_tick": job.request.capture_tick,
+                "apply_start_tick": job.request.apply_start_tick,
+                "dispatch_wait_ms": (started - job.submitted_at_monotonic) * 1000.,
+                "backend_ms": (finished - started) * 1000.,
+                "total_ms": (finished - job.submitted_at_monotonic) * 1000.,
+                "finished_after_stop": self._stop_event.is_set(),
+                "error": error,
+            })
             if error is None:
                 self.jobs_completed += 1
             else:
@@ -239,10 +272,23 @@ class WallClockController:
         if self.record_events:
             self.events.append(event)
 
+    def _stop_env(self):
+        primary_error = sys.exc_info()[1]
+        if callable(getattr(self.env, 'stop', None)):
+            try:
+                self.env.stop()
+            except Exception as exc:
+                self._record({'kind': 'stop_error', 'error': f'{type(exc).__name__}: {exc}'})
+                if primary_error is None:
+                    raise
+                if hasattr(primary_error, 'add_note'):
+                    primary_error.add_note(f'Hold also failed: {type(exc).__name__}: {exc}')
+
     @property
     def current_tick(self) -> int:
         return self._current_tick
 
+    @_defer_cyclic_gc()
     def run(self, num_ticks: int, *, request_every: int | None = None) -> WallClockReport:
         """Run one trial. Episode termination stops control; reset is explicit.
 
@@ -264,8 +310,7 @@ class WallClockController:
             self._warm_start(obs)
         except BaseException:
             self.queue.intervene(0, "warm_start_failed")
-            if callable(getattr(self.env, "stop", None)):
-                self.env.stop()
+            self._stop_env()
             raise
         self.clock = TickClock(hz=self.clock.hz, start_monotonic=time.monotonic())
 
@@ -396,8 +441,7 @@ class WallClockController:
             self._worker.stop(timeout=0.0)
             self._pending_jobs.clear()
             self._record({"kind": "run_end", "tick": ticks_run})
-            if callable(getattr(self.env, "stop", None)):
-                self.env.stop()
+            self._stop_env()
 
         return WallClockReport(
             ticks_run=ticks_run,

@@ -1,0 +1,194 @@
+{
+  "source_date": "2026-11-07",
+  "base_commit": "124e43cdd0b35ea856f326be4dc5136bc9c58f6a",
+  "status": "archived, not promoted or newly validated",
+  "description": "Original uncommitted local source captured before integration, including deferred behavior and legacy duplicate files where present. Not a release candidate.",
+  "files": [
+    {
+      "path": "README.md",
+      "source": "robolab-pi05-stage2-prep/README.md",
+      "sha256": "a84ef2e49757f1be7fc940e9441b196a7b57d93af9ad2e48c3f0cceca3142517",
+      "bytes": 16049
+    },
+    {
+      "path": "configs/runtime_franka.yaml",
+      "source": "robolab-pi05-stage2-prep/configs/runtime_franka.yaml",
+      "sha256": "8972a81edcfacf70c42d5fead0295e2fff5ceaf8ef76cf86bd09dc800299a41c",
+      "bytes": 2271
+    },
+    {
+      "path": "docs/RLINF_PARAMETER_AUDIT.md",
+      "source": "robolab-pi05-stage2-prep/docs/RLINF_PARAMETER_AUDIT.md",
+      "sha256": "0a284e0babe4e5da4a45ebb593977ea3ef4c060bee0d3a4a415f42cd1ed5a690",
+      "bytes": 11001
+    },
+    {
+      "path": "docs/STAGE2_PREPARATION.md",
+      "source": "robolab-pi05-stage2-prep/docs/STAGE2_PREPARATION.md",
+      "sha256": "bc209b7373e72d540ecafb37b694634d6e9282a0a9e3c0c38d6d773ed4f8ec00",
+      "bytes": 12084
+    },
+    {
+      "path": "pi05_rlt_rtc/config/runtime_config.py",
+      "source": "robolab-pi05-stage2-prep/pi05_rlt_rtc/config/runtime_config.py",
+      "sha256": "682ac964b6fb3603de2d00d683cac9f7e1811fa2c93735ea018ff8d5d0852a04",
+      "bytes": 7083
+    },
+    {
+      "path": "pi05_rlt_rtc/contracts/transition.py",
+      "source": "robolab-pi05-stage2-prep/pi05_rlt_rtc/contracts/transition.py",
+      "sha256": "30adf1107ec3ff2b321098f5244d4aa768b479e9508fc1df219001db5aaf2edf",
+      "bytes": 10794
+    },
+    {
+      "path": "pi05_rlt_rtc/deployment/control_owner.py",
+      "source": "robolab-pi05-stage2-prep/pi05_rlt_rtc/deployment/control_owner.py",
+      "sha256": "12c009709fbc549ba6bbf0e7df95bf1a3d78e35aeefc31f372fd5ebb01e973c6",
+      "bytes": 9485
+    },
+    {
+      "path": "pi05_rlt_rtc/deployment/model_loader.py",
+      "source": "robolab-pi05-stage2-prep/pi05_rlt_rtc/deployment/model_loader.py",
+      "sha256": "af57ac271b41a6dc72e336a58bb9f80987dd31f6419e6a0f0353713e874fe494",
+      "bytes": 13388
+    },
+    {
+      "path": "pi05_rlt_rtc/deployment/planner.py",
+      "source": "robolab-pi05-stage2-prep/pi05_rlt_rtc/deployment/planner.py",
+      "sha256": "f28e486374b84ca15df0c9f3e50d5f14f2a28c46022371d246ae5f15c45707b3",
+      "bytes": 6399
+    },
+    {
+      "path": "pi05_rlt_rtc/deployment/prefix_cuda_graph.py",
+      "source": "robolab-pi05-stage2-prep/pi05_rlt_rtc/deployment/prefix_cuda_graph.py",
+      "sha256": "69baa33271c02b2f4f5ab7152cc95d4d36c1be728dd51473171a90a0138deceb",
+      "bytes": 4335
+    },
+    {
+      "path": "pi05_rlt_rtc/deployment/reward_override.py",
+      "source": "robolab-pi05-stage2-prep/pi05_rlt_rtc/deployment/reward_override.py",
+      "sha256": "1cc97b39e484dc9738f7152c044fd6408c45e11e768a7150ac0fd436d1c6354b",
+      "bytes": 2097
+    },
+    {
+      "path": "pi05_rlt_rtc/deployment/rollout.py",
+      "source": "robolab-pi05-stage2-prep/pi05_rlt_rtc/deployment/rollout.py",
+      "sha256": "37ba18a710465f4f78e8ba258390399dc8a0bfec6e549dd5aa8dd6dfe7eae772",
+      "bytes": 7844
+    },
+    {
+      "path": "pi05_rlt_rtc/deployment/session.py",
+      "source": "robolab-pi05-stage2-prep/pi05_rlt_rtc/deployment/session.py",
+      "sha256": "a909722c25fe9e0dc8e598ad464a3f975b6c622997e2810be9e3d687c7e7ab8d",
+      "bytes": 21753
+    },
+    {
+      "path": "pi05_rlt_rtc/deployment/session_env.py",
+      "source": "robolab-pi05-stage2-prep/pi05_rlt_rtc/deployment/session_env.py",
+      "sha256": "e25c99eda316027a032c538ea7bd790959230d5797454a2280a1a679e90f3d85",
+      "bytes": 8304
+    },
+    {
+      "path": "pi05_rlt_rtc/deployment/stage2_session.py",
+      "source": "robolab-pi05-stage2-prep/pi05_rlt_rtc/deployment/stage2_session.py",
+      "sha256": "82de68f82a1904d7261b047622e94ed7c3193662d4ebe5fd3181cae716c6de88",
+      "bytes": 7856
+    },
+    {
+      "path": "pi05_rlt_rtc/deployment/training.py",
+      "source": "robolab-pi05-stage2-prep/pi05_rlt_rtc/deployment/training.py",
+      "sha256": "f493a2fcf35e9c6ae6cad10af4804be51c33cd586311d456393c32c7412fec26",
+      "bytes": 13028
+    },
+    {
+      "path": "pi05_rlt_rtc/learning/transition_assembler.py",
+      "source": "robolab-pi05-stage2-prep/pi05_rlt_rtc/learning/transition_assembler.py",
+      "sha256": "4b21236125c7db98f5598fefb3bf5df8f76f9bbc308b7447fd9113662bd1193b",
+      "bytes": 16651
+    },
+    {
+      "path": "pi05_rlt_rtc/runtime/controller.py",
+      "source": "robolab-pi05-stage2-prep/pi05_rlt_rtc/runtime/controller.py",
+      "sha256": "61f14fb97d82384159ca395669fccd47b498e4f9d3dde6038bffb9c760a2c8b7",
+      "bytes": 25817
+    },
+    {
+      "path": "pi05_rlt_rtc/tools/planner_server.py",
+      "source": "robolab-pi05-stage2-prep/pi05_rlt_rtc/tools/planner_server.py",
+      "sha256": "c8f55b51ae4f16b31ea2c38579e26c08ead5bf3b5b1f1004c60ea17f931c7466",
+      "bytes": 9882
+    },
+    {
+      "path": "scripts/prepare_reward_comparison_data.py",
+      "source": "robolab-pi05-stage2-prep/scripts/prepare_reward_comparison_data.py",
+      "sha256": "547f8d66e59124a4b5253eb4e775a7343af7e600aa934cc87a919b7a8e5e2526",
+      "bytes": 2712
+    },
+    {
+      "path": "scripts/run_pi05_stage1_8000.sh",
+      "source": "robolab-pi05-stage2-prep/scripts/run_pi05_stage1_8000.sh",
+      "sha256": "e61f2475c9d229b03eb6f2dbbbab67903a49832a1d2a7d72b58a3dc869ca16c1",
+      "bytes": 4222
+    },
+    {
+      "path": "scripts/train_reward_comparison.py",
+      "source": "robolab-pi05-stage2-prep/scripts/train_reward_comparison.py",
+      "sha256": "3c3aca465a7cd607f909dd5a58555161e5cf0d397dc54006455bca8084da5184",
+      "bytes": 5246
+    },
+    {
+      "path": "tests/test_control_owner.py",
+      "source": "robolab-pi05-stage2-prep/tests/test_control_owner.py",
+      "sha256": "a85fe4d4a3126f74eacc9f645178c6f618d8f3ab09a53ba7994f8708f7d907b8",
+      "bytes": 6068
+    },
+    {
+      "path": "tests/test_owner_transport.py",
+      "source": "robolab-pi05-stage2-prep/tests/test_owner_transport.py",
+      "sha256": "135a117fe16653593fda09e9ada2fbab21db073cd1bf7650e80035fc559689c0",
+      "bytes": 2376
+    },
+    {
+      "path": "tests/test_planner_stop_timings.py",
+      "source": "robolab-pi05-stage2-prep/tests/test_planner_stop_timings.py",
+      "sha256": "daac017205da52fcc04fb42fdc3a88dd6b6016ffea60bd52774591a45464a1e9",
+      "bytes": 1361
+    },
+    {
+      "path": "tests/test_prefix_cuda_graph.py",
+      "source": "robolab-pi05-stage2-prep/tests/test_prefix_cuda_graph.py",
+      "sha256": "66250dc57a4729a6b19cf9200f67098eaf43274cd410eb202bf9c7489883074d",
+      "bytes": 2435
+    },
+    {
+      "path": "tests/test_review_controller.py",
+      "source": "robolab-pi05-stage2-prep/tests/test_review_controller.py",
+      "sha256": "5171ae2962ffac93fcd79a35bc50d4efa3f5faeaab1d860cc407d5b665634f2c",
+      "bytes": 9729
+    },
+    {
+      "path": "tests/test_session_loop.py",
+      "source": "robolab-pi05-stage2-prep/tests/test_session_loop.py",
+      "sha256": "fab7ae2de13d5a5e4f9245c312b1f826076cfe360018614fd4d78663a7b202e5",
+      "bytes": 11360
+    },
+    {
+      "path": "tests/test_stage2_robot_preflight.py",
+      "source": "robolab-pi05-stage2-prep/tests/test_stage2_robot_preflight.py",
+      "sha256": "3c1fa1c395532aa6f9fb4f9a545e4b2681a2795fadfd96dea662224af2e82e20",
+      "bytes": 1172
+    },
+    {
+      "path": "tests/test_terminal_reward_override.py",
+      "source": "robolab-pi05-stage2-prep/tests/test_terminal_reward_override.py",
+      "sha256": "f5469ed9d43230c8d71a285a819c3ad94ee2da4fd5911fb9ed512fb1f8cfcd1e",
+      "bytes": 5065
+    },
+    {
+      "path": "tests/test_terminal_tail.py",
+      "source": "robolab-pi05-stage2-prep/tests/test_terminal_tail.py",
+      "sha256": "00f06fc270ed0dfbc55363a0a9b91ac0ab6745e9eb17d563795f8bb6fd549b59",
+      "bytes": 2005
+    }
+  ]
+}

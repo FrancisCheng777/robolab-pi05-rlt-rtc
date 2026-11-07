@@ -1,12 +1,14 @@
 """CPU-only owner of the accepted bridge; never imports torch or camera SDKs.
 
 The policy supplies one delta at 15 Hz. Its absolute target is refreshed at the
-accepted teleop rate. Home/open is delegated unchanged to CollectionSession.
+accepted teleop rate. Open-before-home uses CollectionSession's accepted stationary opening and home phases.
 """
 import argparse
+import faulthandler
 import json
 import queue
 import sys
+import signal
 import threading
 import time
 from pathlib import Path
@@ -30,9 +32,11 @@ class ControlOwner:
         self.target = self.width = None
         self.last_action = 0.
         self.action_timeout = action_timeout
+        self._home_after_open = False
 
     def ready(self, state):
-        return bool(not self.tracking and self.lifecycle.phase == 'standby' and self.lifecycle.held(state))
+        return bool(not self.tracking and not self._home_after_open and
+                    self.lifecycle.phase == 'standby' and self.lifecycle.held(state))
 
     def _bound_reference(self, target, state):
         from pi05_rlt_rtc.adapters.policy_reference import bound_joint_reference
@@ -76,6 +80,7 @@ class ControlOwner:
                 'bridge_acknowledged': True}
 
     def hold(self):
+        self._home_after_open = False
         self.tracking = False
         self.target = self.width = None
         self.lifecycle._settle(self.bridge.state(), 'standby')
@@ -84,7 +89,14 @@ class ControlOwner:
         state = self.bridge.state()
         if not self.ready(state):
             raise RuntimeError('home requires completed hold')
-        self.lifecycle._start_home(state, 'standby')
+        # Reuse the validated stationary-arm opening phase. Only after its
+        # measured width check AND completed hold may the arm return home.
+        self.lifecycle.config = {**self.lifecycle.config, 'open_gripper_after_home': False}
+        self.lifecycle.home_destination = 'standby'
+        self.lifecycle.gripper_open_q = np.asarray(state['q'], dtype=float).copy()
+        self.lifecycle.gripper_open_started = time.monotonic()
+        self.lifecycle.phase = 'opening_gripper'
+        self._home_after_open = True
 
     def tick(self):
         state = self.bridge.state()
@@ -97,6 +109,10 @@ class ControlOwner:
                 # policy ticks. This only removes excess; it adds no motion.
                 self.target = self._bound_reference(self.target, state)
             self.bridge.command(state, self.target, self.width)
+        elif (self._home_after_open and self.lifecycle.phase == 'standby'
+              and self.lifecycle.held(state)):
+            self._home_after_open = False
+            self.lifecycle._start_home(state, 'standby')
         elif self.lifecycle.phase in ('init', 'standby'):
             self.bridge.hold(state)
             if self.lifecycle.held(state):
@@ -111,6 +127,8 @@ class ControlOwner:
 
 
 def serve(args):
+    faulthandler.enable()
+    faulthandler.register(signal.SIGUSR1, all_threads=True)
     activate()
     from pi05_demo.transport import Bridge
     from pi05_demo.session import CollectionSession
@@ -124,6 +142,8 @@ def serve(args):
                 requests.put(json.loads(line))
         finally:
             requests.put({'op': 'close'})
+    operation = 'initialization'
+    request = None
     try:
         lifecycle = CollectionSession(bridge, None, None, config, None, 'rlt-control',
                                      mock=args.mock, announce=lambda *a, **k: None)
@@ -139,19 +159,34 @@ def serve(args):
                 request = None
             if request:
                 op = request['op']
+                operation = op
                 if op == 'close':
                     break
                 if op not in ('status', 'action', 'hold', 'home'):
                     raise ValueError('unknown control operation')
                 result = owner.action(request['action']) if op == 'action' else getattr(owner, op)()
-                print(json.dumps({'ok': True, 'result': result}), flush=True)
+                print(json.dumps({'ok': True, 'request_id': request.get('request_id'), 'result': result}), flush=True)
+            operation = 'heartbeat'
             owner.tick()
+            elapsed = time.monotonic()-started
+            if elapsed > .05:
+                print(json.dumps({'event': 'slow_control_cycle', 'elapsed_ms': elapsed*1000,
+                                  'operation': operation}), file=sys.stderr, flush=True)
             time.sleep(max(0., period-(time.monotonic()-started)))
     except BaseException as exc:
-        print(json.dumps({'ok': False, 'error': f'{type(exc).__name__}: {exc}'}), flush=True)
+        detail = f'{operation}: {type(exc).__name__}: {exc}'
+        print(json.dumps({'event': 'control_fault', 'operation': operation,
+                          'error': detail}), file=sys.stderr, flush=True)
+        print(json.dumps({'ok': False, 'error': detail}), flush=True)
         raise
     finally:
-        bridge.close()
+        primary_error = sys.exc_info()[1]
+        try:
+            bridge.close()
+        except Exception as exc:
+            print(f'bridge cleanup failed: {type(exc).__name__}: {exc}', file=sys.stderr, flush=True)
+            if primary_error is None:
+                raise
 
 
 if __name__ == '__main__':

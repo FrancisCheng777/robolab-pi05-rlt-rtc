@@ -124,8 +124,12 @@ def label_rollout(rollout, *, outcome, annotator, terminal_tick=None, allow_mock
     assembler.ingest_run(filtered)
     for transition in assembler.finalize():
         replay.push(transition)
-    if not replay.learnable_transitions():
+    learnable = replay.learnable_transitions()
+    if not learnable:
         annotation.update(eligible=False, reason="no_learnable_critical_transition")
+    elif sum(t.terminated for t in learnable) != 1:
+        annotation.update(eligible=False, reason="missing_learnable_terminal_transition")
+    annotation["terminal_tail_assembly"] = "committed_tail_v1"
     return replay, annotation
 
 

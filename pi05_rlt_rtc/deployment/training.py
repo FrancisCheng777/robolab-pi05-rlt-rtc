@@ -14,6 +14,7 @@ from pi05_rlt_rtc.learning.critic import TwinQWithTargets
 from pi05_rlt_rtc.learning.defaults import stage2_settings
 from pi05_rlt_rtc.learning.losses import actor_loss, bc_warmup_loss, build_transition_batch, critic_loss
 from pi05_rlt_rtc.learning.serialization import atomic_torch_save
+from .reward_override import reward_definition, relabel_terminal_transition
 
 
 class QueueLearner:
@@ -82,6 +83,7 @@ class QueueLearner:
             actor_hidden_dims=self.actor.hidden_dims, critic_hidden_dims=self.critic.online.hidden_dims,
             codec_name="rlinf_openpi_joint_codec", extra={"mock": metadata.get("mock", False), "runtime_contract": self.cfg.wire_contract(),
                 "rtc_mode": self.cfg.rtc_mode, "num_denoising_steps": self.cfg.num_steps,
+                "learner_reward_definition": reward_definition(self.settings),
                 "exploration_std": self.actor.fixed_std, "control_frequency_hz": self.cfg.control_hz, "fingerprint": metadata["fingerprint"]})
         bundle.save(directory / "policy.pt")
         replay.save(directory / "replay.pt")
@@ -89,7 +91,8 @@ class QueueLearner:
             "critic_optimizer": self.critic_opt.state_dict(), "numpy_generator": self.rng.bit_generator.state,
             "torch_generator": self.torch_rng.get_state(), "torch_rng": torch.get_rng_state(),
             "cuda_rng": torch.cuda.get_rng_state_all() if torch.cuda.is_available() else [],
-            "counts": self.counts, "training_settings": self.settings}, directory / "learner_state.pt")
+            "counts": self.counts, "training_settings": self.settings,
+            "learner_reward_definition": reward_definition(self.settings)}, directory / "learner_state.pt")
         write_json(directory / "metrics.json", {"mock": metadata.get("mock", False), "counts": self.counts, "updates": self.metrics})
         return bundle
 
@@ -106,6 +109,9 @@ def train(args, *, warmup_only=False):
         raise ContractError("supply --replay labelled_trial_dir [...]; training never collects or resets hardware")
     if args.warmup_updates < 0 or (not warmup_only and args.updates < 1):
         raise ContractError("invalid update counts")
+    rewards = reward_definition(cfg.raw.get("training", {}))
+    override = cfg.raw.get("training", {}).get("terminal_rewards") is not None
+    reward_audit = []
     replay, metadata, seen = None, None, set()
     for value in directories:
         directory = Path(value)
@@ -131,13 +137,24 @@ def train(args, *, warmup_only=False):
             metadata = current
             replay = ReplayBuffer(cfg.raw.get("training", {}).get("replay_capacity", 10000),
                 feature_version_id=part.feature_version_id, norm_stats_sha256=part.norm_stats_sha256)
+        terminal_count = 0
         for transition in part.all_transitions():
+            if override:
+                transition = relabel_terminal_transition(transition, annotation, rewards)
+            terminal_count += int(transition.terminated and transition.is_learnable())
             replay.push(transition)
+        if override and terminal_count != 1:
+            raise ContractError("reward override requires exactly one learnable terminal transition per episode")
+        reward_audit.append({"trial_id": annotation["trial_id"], "outcome": annotation["outcome"],
+            "terminal_tick": annotation["terminal_tick"], "learnable_terminal_count": terminal_count,
+            "terminal_reward": rewards[annotation["outcome"]],
+            "source_replay_sha256": annotation["replay_sha256"]})
     if replay is None or len(replay.learnable_transitions()) < 2:
         raise ContractError("need at least two learnable, labelled physical transitions")
     spec = PlanningStateSpec.from_contract(cfg.contract, z_dim=int(cfg.raw["model"].get("z_dim", 2048)))
     learner = QueueLearner(cfg, spec, device=getattr(args, "learner_device", "cpu"), seed=args.seed)
     resume = getattr(args, "resume", None)
+    reward_migration = None
     if resume:
         bundle = PolicyBundle.load(Path(resume) / "policy.pt")
         if (bundle.spec != spec or bundle.contract != cfg.contract or
@@ -148,8 +165,15 @@ def train(args, *, warmup_only=False):
         learner.actor.load_state_dict(bundle.actor_state)
         learner.critic.load_state_dict(bundle.critic_state)
         state = torch.load(Path(resume) / "learner_state.pt", map_location=learner.device, weights_only=True)
-        if state.get("training_settings") != learner.settings:
-            raise ContractError("resume training settings changed; start a new run for a new baseline")
+        old_settings = state.get("training_settings", {})
+        if old_settings != learner.settings:
+            reward_only = ({k:v for k,v in old_settings.items() if k != "terminal_rewards"}
+                           == {k:v for k,v in learner.settings.items() if k != "terminal_rewards"})
+            if not (reward_only and getattr(args, "allow_reward_change", False)):
+                raise ContractError("resume training settings changed; start a new run or explicitly authorize a reward-only comparison")
+            reward_migration = {"from": reward_definition(old_settings), "to": rewards,
+                "resume_checkpoint": str(Path(resume).resolve()),
+                "actor_critic_and_optimizers": "preserved for controlled comparison"}
         if state["policy_version_id"] != bundle.policy_version_id:
             raise ContractError("resume optimizer/policy mismatch")
         learner.actor_opt.load_state_dict(state["actor_optimizer"])
@@ -170,6 +194,9 @@ def train(args, *, warmup_only=False):
         learner.update(replay, args.updates)
         learner.counts["rounds"] += 1
     learner.save(out / "latest", metadata, replay)
-    write_json(out / "training_sources.json", {"trial_ids": sorted(seen), "replay_directories": directories})
+    write_json(out / "training_sources.json", {"trial_ids": sorted(seen), "replay_directories": directories,
+        "learner_reward_definition": rewards, "reward_migration": reward_migration})
+    write_json(out / "reward_audit.json", {"terminal_override": override,
+        "learner_reward_definition": rewards, "migration": reward_migration, "episodes": reward_audit})
     print(f"physical replay training saved {out / 'latest' / 'policy.pt'}; counts={learner.counts}")
     return 0

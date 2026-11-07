@@ -66,7 +66,7 @@ Stage-1 则沿用 π0.5 + RLT 模块体系。核对 provenance 哈希，`openpi/
 | actor:critic 更新比 | 已由 1:1 恢复官方 1:4 | 全局零起点 update_step % 4 == 0 时更新 actor；跨调用和 resume 连续 |
 | 启动门槛 | 5 个有效 episode 且 32 条可学习 transition | 工程起点，没有官方实验支持这两个具体值 |
 | BC warmup | 100 次 | 先模仿 teacher 再交给 AC 的本地流程；具体次数无消融支持 |
-| 每轮 AC 更新 | 初次与后续每个有效 episode 各 100 次 critic、25 次 actor | 维持每轮 100 个 critic 迭代；不等于官方 update_epoch=8，统计单位不同 |
+| 每批 AC 更新 | 每新增 10 个有效 episode，1000 次 critic、250 次 actor；首批额外 100 次 BC | 用户选择的分批调度，保持每条 100 次 critic 的更新预算；不等于官方 update_epoch=8，统计单位不同 |
 | replay 容量 | 10000 条 transition | 官方 cache/sample window=200 对应其 rollout 存储单位，不能直接照抄为 200 条本地 transition |
 
 更新计数 `updates` 表示 critic 迭代，`actor_updates` 表示 AC actor 更新，`warmup_updates` 单独记录 BC。target Q 每个 critic 迭代都 EMA 更新，actor 跳过的迭代不会伪造 actor loss。

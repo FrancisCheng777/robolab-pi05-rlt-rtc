@@ -96,7 +96,7 @@ def load_runtime_config(path: str | Path) -> RuntimeConfig:
     z_dim = raw["model"].get("z_dim", 2048)
     if type(z_dim) is not int or z_dim <= 0:
         raise ConfigError("model.z_dim must be a positive integer")
-    for key in ("compile_kernels", "compile_suffix"):
+    for key in ("compile_kernels", "compile_suffix", "vision_cuda_graph"):
         if type(raw["model"].get(key, False)) is not bool:
             raise ConfigError(f"model.{key} must be boolean")
     if raw.get("policy", {}).get("kind") not in ("teacher", "actor"):
@@ -115,6 +115,9 @@ def load_runtime_config(path: str | Path) -> RuntimeConfig:
     if not isinstance(noise, (int,float)) or not math.isfinite(noise) or noise < 0:
         raise ConfigError('exploration_std must be finite and nonnegative')
     if 'session' in raw:
+        every = raw['session'].get('update_every_episodes', 1)
+        if type(every) is not int or every < 1:
+            raise ConfigError('session.update_every_episodes must be a positive integer')
         for key in ('warmup_episodes','min_replay_transitions','warmup_updates','updates_per_episode',
                     'max_approach_ticks','max_critical_ticks'):
             if type(raw['session'].get(key)) is not int or raw['session'][key] <= 0:

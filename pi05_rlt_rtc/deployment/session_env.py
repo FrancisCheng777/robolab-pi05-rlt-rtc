@@ -1,7 +1,9 @@
 """Persistent control-process client and per-episode camera environment."""
 import contextlib
 import json
+import os
 import select
+import signal
 import subprocess
 import time
 import threading
@@ -21,6 +23,10 @@ class OwnerClient:
     def __init__(self, cfg, *, mock=False):
         self._rpc_lock = threading.RLock()
         self.interrupted = threading.Event()
+        self._failure = None
+        self._reply_buffer = b''
+        self._request_id = 0
+        self._diagnostic_ready = False
         settings = cfg.raw['session']
         command = [settings.get('control_python', 'python3'), '-m',
                    'pi05_rlt_rtc.deployment.control_owner', '--socket', cfg.raw['franka']['socket'],
@@ -28,8 +34,14 @@ class OwnerClient:
                    '--joint-command-mode', cfg.raw['franka'].get('joint_command_mode', 'measured_delta'),
                    '--reference-lead-rad', str(cfg.raw['franka'].get('reference_lead_rad', .05)),
                    '--mock' if mock else '--execute']
-        self.process = subprocess.Popen(command, cwd=Path(__file__).resolve().parents[2],
-                                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, bufsize=1)
+        directory = Path.home()/'.cache/pi05-stage1-8000/control-owner'
+        directory.mkdir(parents=True, exist_ok=True)
+        self.log_path = directory/f'{time.time_ns()}.log'
+        with self.log_path.open('a') as log:
+            self.process = subprocess.Popen(command, cwd=Path(__file__).resolve().parents[2],
+                                            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                            stderr=log, bufsize=0)
+        print(f'CPU control owner log: {self.log_path}', flush=True)
         try:
             state = self.wait_ready()["state"]
             expected = json.loads(cfg.asset(cfg.raw["franka"]["bridge_config"], "bridge config").read_text())
@@ -56,19 +68,52 @@ class OwnerClient:
             return self._rpc(op, **fields)
 
     def _rpc(self, op, **fields):
-        if self.process.poll() is not None:
-            raise ContractError('CPU control owner exited; restart session explicitly')
-        self.process.stdin.write(json.dumps({'op': op, **fields}, allow_nan=False)+'\n')
-        self.process.stdin.flush()
-        if not select.select([self.process.stdout], [], [], 2.)[0]:
-            raise TimeoutError('CPU control owner did not acknowledge')
-        line = self.process.stdout.readline()
-        if not line:
-            raise ContractError('CPU control owner disconnected')
-        reply = json.loads(line)
-        if not reply['ok']:
-            raise ContractError(reply['error'])
-        return reply['result']
+        if self._failure is not None:
+            raise ContractError(f'CPU control channel fault latched: {self._failure}')
+        started = time.monotonic()
+        self._request_id += 1
+        try:
+            if self.process.poll() is not None:
+                raise ContractError('CPU control owner exited; restart session explicitly')
+            payload = json.dumps({'op': op, 'request_id': self._request_id, **fields}, allow_nan=False)
+            self.process.stdin.write((payload+'\n').encode())
+            self.process.stdin.flush()
+            reply = self._read_reply(started+2.)
+            self._diagnostic_ready = True
+            if not reply['ok']:
+                raise ContractError(reply['error'])
+            if reply.get('request_id') != self._request_id:
+                raise ContractError('CPU control reply request ID mismatch')
+            return reply['result']
+        except Exception as exc:
+            self._failure = (f'{op} request {self._request_id}, '
+                             f'{1000*(time.monotonic()-started):.1f} ms: '
+                             f'{type(exc).__name__}: {exc}; log={self.log_path}')
+            self.interrupted.set()
+            # Never send another command into a channel with uncertain ACKs.
+            # EOF asks the owner to close; the bridge watchdog remains enabled.
+            with contextlib.suppress(OSError):
+                if self._diagnostic_ready and self.process.poll() is None:
+                    self.process.send_signal(signal.SIGUSR1)
+            with contextlib.suppress(OSError):
+                self.process.stdin.close()
+            raise ContractError(self._failure) from exc
+
+    def _read_reply(self, deadline):
+        # TextIO.readline after select can block forever on a partial JSON line,
+        # or hide a second line in its private read-ahead buffer.
+        while b'\n' not in self._reply_buffer:
+            remaining = deadline-time.monotonic()
+            if remaining <= 0 or not select.select([self.process.stdout], [], [], remaining)[0]:
+                raise TimeoutError('CPU control owner did not acknowledge a complete reply')
+            chunk = os.read(self.process.stdout.fileno(), 16384)
+            if not chunk:
+                raise ContractError('CPU control owner disconnected')
+            self._reply_buffer += chunk
+            if len(self._reply_buffer) > 131072:
+                raise ContractError('oversized CPU control reply')
+        line, self._reply_buffer = self._reply_buffer.split(b'\n', 1)
+        return json.loads(line)
 
     def wait_ready(self, timeout=12.):
         deadline = time.monotonic()+timeout

@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import signal
+import subprocess
 import time
 from .managed_eval import lock_file, owned_process, run_eval
 from .rpc import RemotePlanner
@@ -54,6 +55,26 @@ def station_status():
         status.get('network_softirq_priority') == 50)
     return status
 
+
+def require_robot_idle(ip='172.16.0.40'):
+    """Read libfranka state only. Never clear errors, initialize control or move."""
+    try:
+        reply = subprocess.run(['echo_robot_state', ip], capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError(f'无法只读检查 Panda 状态：{exc}') from exc
+    if reply.returncode:
+        raise RuntimeError('Panda 状态读取失败：' + reply.stderr[-1500:])
+    samples = [json.loads(line) for line in reply.stdout.splitlines() if line.startswith('{')]
+    if not samples:
+        raise RuntimeError('Panda 状态检查没有返回有效数据')
+    state = samples[-1]
+    mode, errors = state.get('robot_mode'), state.get('current_errors')
+    if mode != 'Idle' or errors != []:
+        raise RuntimeError(f"Panda 当前为 {mode}，当前错误={errors}，上次运动错误={state.get('last_motion_errors')}。"
+            '请在 Franka Desk 按提示恢复到无故障 Idle 后重试。电脑通信设置不会自动清除机器人 Reflex；未启动 bridge 或运动。')
+    print('Panda 状态检查通过：Idle，无当前错误。', flush=True)
+    return state
+
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('mode',choices=('check','collect','train','eval'),nargs='?',default='check')
@@ -81,6 +102,7 @@ def main():
         'failures':sum(r['outcome']=='failure' for r in valid),
         'learnable_transitions':sum(r['learnable'] for r in valid),
         'update_gate':{'episodes':cfg.raw['session']['warmup_episodes'],
+                       'new_episodes_per_batch':cfg.raw['session'].get('update_every_episodes',1),
                        'transitions':cfg.raw['session']['min_replay_transitions']},
         'station':station, 'hardware_opened':False},ensure_ascii=False,indent=2),flush=True)
     if args.mode=='check' or not args.execute:
@@ -101,6 +123,9 @@ def main():
     def interrupted(signum,frame):raise KeyboardInterrupt(f'signal {signum}')
     for sig in (signal.SIGHUP,signal.SIGTERM):signal.signal(sig,interrupted)
     with lock_file(directory/'session.lock'):
+        from .bridge_preflight import prepare_socket
+        prepare_socket(cfg.raw['franka']['socket'])
+        require_robot_idle(os.environ.get('PI05_ROBOT_IP', '172.16.0.40'))
         # Guard against the user starting another inference client while updating AC.
         # Both Stage-1 and Stage-2 launchers use this same ownership lock.
         mode='train' if args.mode in ('collect','train') else 'eval'
@@ -110,4 +135,8 @@ def main():
 
 
 if __name__=='__main__':
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except (RuntimeError, OSError) as exc:
+        print(f'启动未完成：{exc}', file=__import__('sys').stderr, flush=True)
+        raise SystemExit(2)
