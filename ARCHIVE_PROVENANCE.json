@@ -1,0 +1,68 @@
+{
+  "source_date": "2026-11-07",
+  "base_commit": "81de87916ac091b15f06fc163d30006e073bbb75",
+  "status": "archived, not promoted or newly validated",
+  "description": "Original uncommitted local source captured before integration, including deferred behavior and legacy duplicate files where present. Not a release candidate.",
+  "files": [
+    {
+      "path": "pi05_rlt_rtc/config/runtime_config.py",
+      "source": "robolab-pi05-rlt-rtc/pi05_rlt_rtc/config/runtime_config.py",
+      "sha256": "e40e24d2c75c30472606e6e25e503bece29203622eb45fb56f92f6a47d7662e4",
+      "bytes": 6882
+    },
+    {
+      "path": "pi05_rlt_rtc/deployment/model_loader.py",
+      "source": "robolab-pi05-rlt-rtc/pi05_rlt_rtc/deployment/model_loader.py",
+      "sha256": "af57ac271b41a6dc72e336a58bb9f80987dd31f6419e6a0f0353713e874fe494",
+      "bytes": 13388
+    },
+    {
+      "path": "pi05_rlt_rtc/deployment/planner.py",
+      "source": "robolab-pi05-rlt-rtc/pi05_rlt_rtc/deployment/planner.py",
+      "sha256": "6a4e7316a9893902377cf4f10e884729eda56d2eccaeb804f179b14dbf4231ed",
+      "bytes": 5802
+    },
+    {
+      "path": "pi05_rlt_rtc/deployment/prefix_cuda_graph.py",
+      "source": "robolab-pi05-rlt-rtc/pi05_rlt_rtc/deployment/prefix_cuda_graph.py",
+      "sha256": "69baa33271c02b2f4f5ab7152cc95d4d36c1be728dd51473171a90a0138deceb",
+      "bytes": 4335
+    },
+    {
+      "path": "pi05_rlt_rtc/learning/defaults 2.py",
+      "source": "robolab-pi05-rlt-rtc/pi05_rlt_rtc/learning/defaults 2.py",
+      "sha256": "5e78285ed43fba9624de1ecd3c636cdad77096ee3d1835a2793fb038c400f881",
+      "bytes": 1829
+    },
+    {
+      "path": "pi05_rlt_rtc/runtime/controller.py",
+      "source": "robolab-pi05-rlt-rtc/pi05_rlt_rtc/runtime/controller.py",
+      "sha256": "fe25632435f2b4e420e1fe49dd9e5d6727fa6728209da3db2ce942b5f5111585",
+      "bytes": 24674
+    },
+    {
+      "path": "pi05_rlt_rtc/tools/planner_server.py",
+      "source": "robolab-pi05-rlt-rtc/pi05_rlt_rtc/tools/planner_server.py",
+      "sha256": "c8f55b51ae4f16b31ea2c38579e26c08ead5bf3b5b1f1004c60ea17f931c7466",
+      "bytes": 9882
+    },
+    {
+      "path": "tests/test_official_stage2_settings 2.py",
+      "source": "robolab-pi05-rlt-rtc/tests/test_official_stage2_settings 2.py",
+      "sha256": "50baf22ed6a0b498f989064168b77311ca82221371a8abbe0ad644007d66eb15",
+      "bytes": 2658
+    },
+    {
+      "path": "tests/test_prefix_cuda_graph.py",
+      "source": "robolab-pi05-rlt-rtc/tests/test_prefix_cuda_graph.py",
+      "sha256": "66250dc57a4729a6b19cf9200f67098eaf43274cd410eb202bf9c7489883074d",
+      "bytes": 2435
+    },
+    {
+      "path": "tests/test_review_controller.py",
+      "source": "robolab-pi05-rlt-rtc/tests/test_review_controller.py",
+      "sha256": "e702bed7b6b3ad5f4894893aa79c7d995ce2547d913f9c9b8d7deb3e3cdecd42",
+      "bytes": 9002
+    }
+  ]
+}

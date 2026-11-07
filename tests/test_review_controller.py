@@ -190,3 +190,30 @@ def test_virtual_snapshots_match_authoritative_ticks_across_resets(contract):
 
     log = VirtualDelayScheduler(contract=contract, queue=ActionQueue(contract), backend=CheckingPlanner(contract), env=TerminalEnv()).run(8)
     assert log.episodes == 3
+
+
+@pytest.mark.parametrize('enabled', [True, False])
+@pytest.mark.parametrize('fail', [True, False])
+def test_control_loop_defers_cyclic_gc_and_restores_state(contract, manual_runtime, enabled, fail):
+    import gc
+    previous = gc.isenabled()
+    (gc.enable if enabled else gc.disable)()
+    observed = []
+    class Env(RecordingEnv):
+        def step(self, action):
+            observed.append(gc.isenabled())
+            if fail:
+                raise RuntimeError('test environment failure')
+            return super().step(action)
+    controller = mod.WallClockController(contract=contract, queue=ActionQueue(contract),
+        backend=NumberedReferencePlanner(contract), env=Env(), tick_hz=10)
+    try:
+        if fail:
+            with pytest.raises(RuntimeError, match='test environment failure'):
+                controller.run(2)
+        else:
+            controller.run(2)
+        assert observed and not any(observed)
+        assert gc.isenabled() is enabled
+    finally:
+        (gc.enable if previous else gc.disable)()

@@ -15,6 +15,8 @@ semantics being tested.
 from __future__ import annotations
 
 import dataclasses
+import contextlib
+import gc
 import queue as thread_queue
 import threading
 import time
@@ -35,6 +37,23 @@ from pi05_rlt_rtc.contracts.plan import (
 from pi05_rlt_rtc.contracts.spaces import ENV_ACTION_DIM, HorizonContract
 from pi05_rlt_rtc.runtime.queue import ActionQueue
 from pi05_rlt_rtc.runtime.scheduler import EnvProtocol, PlanResult, PlannerProtocol
+
+
+@contextlib.contextmanager
+def _defer_cyclic_gc():
+    """Avoid stop-the-world cycle scans during the one active control loop.
+
+    Reference counting still releases ordinary objects. Restore the caller's GC
+    policy after environment stop, including warmup/step failures. The hardware
+    session lock prevents concurrent control loops in this process.
+    """
+    enabled = gc.isenabled()
+    gc.disable()
+    try:
+        yield
+    finally:
+        if enabled:
+            gc.enable()
 
 
 def _percentile(values: list[float], pct: float) -> float | None:
@@ -243,6 +262,7 @@ class WallClockController:
     def current_tick(self) -> int:
         return self._current_tick
 
+    @_defer_cyclic_gc()
     def run(self, num_ticks: int, *, request_every: int | None = None) -> WallClockReport:
         """Run one trial. Episode termination stops control; reset is explicit.
 

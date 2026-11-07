@@ -96,7 +96,7 @@ def load_runtime_config(path: str | Path) -> RuntimeConfig:
     z_dim = raw["model"].get("z_dim", 2048)
     if type(z_dim) is not int or z_dim <= 0:
         raise ConfigError("model.z_dim must be a positive integer")
-    for key in ("compile_kernels", "compile_suffix"):
+    for key in ("compile_kernels", "compile_suffix", "vision_cuda_graph"):
         if type(raw["model"].get(key, False)) is not bool:
             raise ConfigError(f"model.{key} must be boolean")
     if raw.get("policy", {}).get("kind") not in ("teacher", "actor"):

@@ -33,6 +33,7 @@ class FeaturePlanner:
         if pending_prefix.shape != (self.contract.delay, 8) or not np.isfinite(pending_prefix).all():
             raise ContractError("pending_prefix must be finite [D,8]")
         fr = self.service.extract(request, observation)
+        self.last_feature_timings = dict(fr.timings)
         fr.validate(self.contract, expected_batch=1)
         pending = np.zeros((self.spec.max_delay, 8), np.float32)
         pending_mask = np.zeros_like(pending, bool)
