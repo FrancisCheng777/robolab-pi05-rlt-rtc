@@ -13,6 +13,8 @@ model:
   config_name: pi05_rlt_panda_robotiq_joint
   dataset_id: local/pi05_plug_train
   device: cuda:0
+  vision_cuda_graph: true  # DEFERRED: requires CUDA numerical/latency acceptance
+  actor_inference_device: cpu  # DEFERRED: validate against GPU actor
   precision: bf16
   z_dim: 2048
 policy: {kind: teacher, checkpoint: null}

@@ -271,7 +271,7 @@ def bind_policy(backend, metadata, checkpoint, cfg, *, mode, exploration=None):
     if checkpoint is not None:
         # Published round directories are immutable. Reusing a round must not
         # rebuild its actor (or pretend a new version was trained) after a trial.
-        actor_device = cfg.raw['model']['device']
+        actor_device = cfg.raw['model'].get('actor_inference_device', cfg.raw['model']['device'])
         binding = (str(Path(checkpoint).resolve()), str(actor_device),
                    metadata['feature_version_id'], metadata['norm_stats_sha256'],
                    metadata['mock'], json.dumps(cfg.wire_contract(), sort_keys=True))
@@ -351,14 +351,14 @@ def _run_session(args):
                 pending_home = True
                 if 'h' in commands:
                     owner.interrupt()
-                print('[复位请求] 等待保持后回初始位姿并张爪；x 取消，q 退出。', flush=True)
+                print('[复位请求] 等待保持后先张爪，再回初始位姿；x 取消，q 退出。', flush=True)
             if pending_home:
                 if 'r' in commands:
                     print('[尚未开始] 正在等待回位，r 未执行；看到「回位完成」后请重新按 r。', flush=True)
                 if operator_start(keys, owner, home=True):
                     pending_home = False
                     home_in_progress = True
-                    print('[复位中] 正在回初始位姿，完成后张爪；x=保持，q=退出。', flush=True)
+                    print('[复位中] 先在当前位置张开夹爪，确认完成后回初始位姿；x=保持，q=退出。', flush=True)
                 time.sleep(.02)
                 continue
             if home_in_progress:
