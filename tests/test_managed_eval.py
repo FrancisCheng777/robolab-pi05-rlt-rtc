@@ -10,6 +10,7 @@ import pytest
 from pi05_rlt_rtc.deployment import managed_eval as m
 
 
+@pytest.mark.skipif(not Path('/proc/self/stat').exists(), reason='Linux process identity registry required')
 def test_model_identity_prevents_pid_reuse_and_unowned_kill():
     child=subprocess.Popen([sys.executable,'-c','import time; time.sleep(30)'])
     try:
@@ -31,6 +32,7 @@ def test_session_lock_rejects_duplicate(tmp_path):
 
 
 def test_ready_model_reused_without_starting_another_process(tmp_path,monkeypatch):
+    monkeypatch.setattr(m, 'process_start', lambda pid: 'test-process-start')
     state={'pid':os.getpid(),'start':m.process_start(os.getpid()),'fingerprint':'test','url':'http://127.0.0.1:18765','token':'test-token'}
     (tmp_path/'model.json').write_text(json.dumps(state))
     monkeypatch.setattr(m,'fingerprint',lambda _: 'test')
