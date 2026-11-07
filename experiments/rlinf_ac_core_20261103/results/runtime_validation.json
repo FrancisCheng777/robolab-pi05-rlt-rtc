@@ -1,0 +1,13 @@
+{
+  "hardware_opened": false,
+  "real_feature_states_tested": 103,
+  "eval_policy_id": "queue-rlt:8e4ad59575153645fb8fd597a6aea5fd2778e0e47db3acb8a19d3a67a22793fc",
+  "teacher_before_b_preserved": true,
+  "actor_after_b_verified": true,
+  "deterministic_eval": true,
+  "actor_device": "cpu",
+  "actor_latency_first_ms": 1.318818000072497,
+  "actor_latency_p95_ms": 0.44987459959884285,
+  "actor_latency_max_ms": 1.318818000072497,
+  "end_to_end_vla_latency_measured": false
+}

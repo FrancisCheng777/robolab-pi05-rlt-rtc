@@ -1,0 +1,61 @@
+# Pure physical-robot pipeline. H/C/D require measured full-VJP latency validation.
+version: 1
+platform: franka
+action_contract_id: panda_delta_q0.05_robotiq_width0.085_v2
+prompt: insert the plug into the power strip
+horizon: {horizon: 10, chunk: 5, delay: 2}
+control_hz: 15
+rtc: {mode: full_vjp, num_steps: 5}
+model:
+  rlinf_root: ../stage1_integration/vendor/rlinf_stage1
+  checkpoint: null  # Stage-1 full weights, including trained RLT
+  norm_stats: null  # statistics computed on real training demonstrations only
+  config_name: pi05_rlt_panda_robotiq_joint
+  dataset_id: local/pi05_plug_train
+  device: cuda:0
+  vision_cuda_graph: true  # replay identical frozen vision kernels; warmed before hardware opens
+  actor_inference_device: cpu  # tiny MLP; avoids first-use CUDA latency during critical handoff
+  precision: bf16
+  z_dim: 2048
+policy: {kind: teacher, checkpoint: null}
+franka:
+  socket: /tmp/robolab-rlt.sock
+  bridge_config: ../vendor/robolab-collecting-pipeline/configs/latency/responsive_recording/bridge.trial.json
+  rpc_timeout_s: 0.05
+  max_state_age_s: 0.05
+  max_camera_age_s: 0.20
+  max_camera_skew_s: 0.08
+  cameras:
+    factory: pi05_rlt_rtc.adapters.cameras_panda:create_provider
+    kwargs:
+      views: [wrist]
+      wrist_serial: "262622272972"
+      wrist_model: D405
+training:
+  # Scalar defaults from pinned RLinf realworld RLT; see docs/RLINF_PARAMETER_AUDIT.md.
+  reward_source: manual_terminal
+  gamma_per_tick: 0.99
+  replay_capacity: 10000
+  critic_actor_ratio: 4
+  batch_size: 256
+  actor_lr: 0.0003
+  critic_lr: 0.0003
+  lambda_q: 0.1
+  lambda_bc: 5.0
+  reference_dropout: 0.5
+  polyak_tau: 0.005
+  actor_clip_grad: 10.0
+  critic_clip_grad: 10.0
+  reward_scheme: rlt_binary
+  exploration_std: 0.002  # RLinf RLT: Gaussian logits noise before tanh; not radians
+session:
+  collection_config: ../vendor/robolab-collecting-pipeline/configs/latency/responsive_recording/collection.trial.json
+  bridge_binary: ../build/bridge-real/pi05_franka_bridge
+  control_python: .venv-runtime/bin/python
+  warmup_episodes: 10
+  update_every_episodes: 10
+  min_replay_transitions: 32
+  warmup_updates: 100
+  updates_per_episode: 100  # 10 new eligible episodes -> 1000 critic / 250 actor updates
+  max_approach_ticks: 900
+  max_critical_ticks: 450

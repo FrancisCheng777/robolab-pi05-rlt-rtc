@@ -1,0 +1,27 @@
+{
+  "state": "complete",
+  "hardware_opened": false,
+  "automatic_policy_switch": false,
+  "checkpoint": "/media/heinrich/SANDISK SSD/pi05-stage2/plug_rlt_afixed_20261103/comparisons/rlinf_core_20261103/latest/policy.pt",
+  "runtime_config": "/media/heinrich/SANDISK SSD/pi05-stage2/plug_rlt_afixed_20261103/comparisons/rlinf_core_20261103/runtime_rlinf_core.yaml",
+  "policy_version_id": "queue-rlt:8e4ad59575153645fb8fd597a6aea5fd2778e0e47db3acb8a19d3a67a22793fc",
+  "counts": {
+    "warmup_updates": 0,
+    "updates": 792,
+    "actor_updates": 198,
+    "rounds": 99
+  },
+  "episodes": 100,
+  "outcomes": {
+    "failure": 62,
+    "success": 38
+  },
+  "transitions": 3573,
+  "elapsed_s": 64.3794593270004,
+  "source_files_unchanged": true,
+  "all_metrics_finite": true,
+  "checkpoint_reload_predictions_identical": true,
+  "max_abs_action": 0.9747263789176941,
+  "mean_abs_action_difference_from_teacher": 0.016744704812420012,
+  "real_robot_success_verified": false
+}
