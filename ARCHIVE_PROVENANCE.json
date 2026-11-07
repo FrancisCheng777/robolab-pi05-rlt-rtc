@@ -1,0 +1,1370 @@
+{
+  "source_date": "2026-11-07",
+  "base_commit": "124e43cdd0b35ea856f326be4dc5136bc9c58f6a",
+  "status": "archived, not promoted or newly validated",
+  "description": "Exact local source overlay; some source directories are partial snapshots. Historical results are not fresh validation. Data, weights, generated binaries and caches are excluded. Apply overlay only after comparing with its original deployed base.",
+  "files": [
+    {
+      "path": "experiments/gello_corrections_20261103/README.md",
+      "source": "experiments/gello_corrections_20261103/README.md",
+      "sha256": "ecc7425ad591382166c519505f0259b77655c09494ddfb155250a78163488ed8",
+      "bytes": 4935
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/calibration.json",
+      "source": "experiments/gello_corrections_20261103/calibration.json",
+      "sha256": "40235014846c9f1e9dc68348bf466f12ee131e3467fea1861eefb9c1e72f71c0",
+      "bytes": 6568
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/configs/design_franka_b2.yaml",
+      "source": "experiments/gello_corrections_20261103/configs/design_franka_b2.yaml",
+      "sha256": "4c3b6e3746e9bd058b63880c4d30cd3b3c50f353f0d6997f9874ca7cf3af9959",
+      "bytes": 4629
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/configs/franka_bridge.example.json",
+      "source": "experiments/gello_corrections_20261103/configs/franka_bridge.example.json",
+      "sha256": "1c088183219d0408372267be5c3346cd7800c3537f46ca61ebf3861cc550f488",
+      "bytes": 1891
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/configs/franka_bridge_panda.example.json",
+      "source": "experiments/gello_corrections_20261103/configs/franka_bridge_panda.example.json",
+      "sha256": "1c088183219d0408372267be5c3346cd7800c3537f46ca61ebf3861cc550f488",
+      "bytes": 1891
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/configs/legacy/stage1_panda.yaml",
+      "source": "experiments/gello_corrections_20261103/configs/legacy/stage1_panda.yaml",
+      "sha256": "33ccb5f8c259086137352431e1fd957d10c111e01b479ccefe396c9c3180adfc",
+      "bytes": 2973
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/configs/runtime_correction_actor_eval.yaml",
+      "source": "experiments/gello_corrections_20261103/configs/runtime_correction_actor_eval.yaml",
+      "sha256": "d62e0521b2e7d52bcdea7bd6eb0d511e02e41a3357aca489b0d7484184aadc1d",
+      "bytes": 3356
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/configs/runtime_eef_auto.yaml",
+      "source": "experiments/gello_corrections_20261103/configs/runtime_eef_auto.yaml",
+      "sha256": "b856008b62985546d7d46c763da063dc7fb5fb1068047f6e1574b2931dfe1832",
+      "bytes": 3351
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/configs/runtime_eef_auto_v1_10mm.yaml",
+      "source": "experiments/gello_corrections_20261103/configs/runtime_eef_auto_v1_10mm.yaml",
+      "sha256": "71afaf310c25223d7927ec1f4f3c2c7d9b78b1219ac9e053301b05879c2c4fde",
+      "bytes": 3311
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/configs/runtime_eef_auto_v2_15mm.yaml",
+      "source": "experiments/gello_corrections_20261103/configs/runtime_eef_auto_v2_15mm.yaml",
+      "sha256": "9b75757af642c7aeffe02e18c9cf5d323b97fd1f8333356dee8e4dfbc2dc6cac",
+      "bytes": 3345
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/configs/runtime_eef_shadow.yaml",
+      "source": "experiments/gello_corrections_20261103/configs/runtime_eef_shadow.yaml",
+      "sha256": "720506ee226e44396d474577ef2e72c52f5642ed826178ad7e44a81f861b5f6b",
+      "bytes": 3353
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/configs/runtime_eef_shadow_v1_10mm.yaml",
+      "source": "experiments/gello_corrections_20261103/configs/runtime_eef_shadow_v1_10mm.yaml",
+      "sha256": "552930e09feee7c120736d04e057e0f2a1572267bd69187dc06eeb53541c23cc",
+      "bytes": 3313
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/configs/runtime_eef_shadow_v2_15mm.yaml",
+      "source": "experiments/gello_corrections_20261103/configs/runtime_eef_shadow_v2_15mm.yaml",
+      "sha256": "b18455484140755e75ec6ce933d456ebb00b61ac46dfd58d17a2924af3744b63",
+      "bytes": 3347
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/configs/runtime_franka.yaml",
+      "source": "experiments/gello_corrections_20261103/configs/runtime_franka.yaml",
+      "sha256": "db91e819485d335946ba07e1a6b15a4abcf2d8322300c7aba5c024a9c5450ece",
+      "bytes": 2173
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/configs/runtime_franka_stage2.before-vision-graph.yaml",
+      "source": "experiments/gello_corrections_20261103/configs/runtime_franka_stage2.before-vision-graph.yaml",
+      "sha256": "25f8e37045ad7f4660680d621e4e3a5a597bf4321057ae23be7450887cb8a30e",
+      "bytes": 2201
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/configs/runtime_franka_stage2.yaml",
+      "source": "experiments/gello_corrections_20261103/configs/runtime_franka_stage2.yaml",
+      "sha256": "cb73f53f48bc0046970e0368625c37c72f92fb8dc24cb69a9839408cca1fb5fa",
+      "bytes": 2227
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/configs/runtime_gello_corrections.yaml",
+      "source": "experiments/gello_corrections_20261103/configs/runtime_gello_corrections.yaml",
+      "sha256": "c421dd639016ed02e090155a6020864f3377867b38b91557a4784a033872db8a",
+      "bytes": 3391
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/configs/training_contract.json",
+      "source": "experiments/gello_corrections_20261103/configs/training_contract.json",
+      "sha256": "6e4b32ed852e2b43da22dd329adfdfd3c184185f0c5dbfc3c9dce6583886542f",
+      "bytes": 2206
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/__init__.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/__init__.py",
+      "sha256": "e22b4e27d40e26b7dc3cbafd3b2976a0c1cb701a84b2e88e9da5a824e7479a3b",
+      "bytes": 906
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/action_codec/__init__.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/action_codec/__init__.py",
+      "sha256": "b0ee84f21e4dc7fefe475a6c3aaa71a42267df21dddfdbcffddf826436183e18",
+      "bytes": 282
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/action_codec/codec.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/action_codec/codec.py",
+      "sha256": "ba9ae7fb3f9118f31a330b31d3bb7b5d4216811a9cabf85be8592db5869aede4",
+      "bytes": 13989
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/__init__.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/__init__.py",
+      "sha256": "eba8f1b72981f52e1759a8dde31ac15461206522ad792b8566cff48173b5d3bb",
+      "bytes": 439
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/camera_devices.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/camera_devices.py",
+      "sha256": "447a7c2b3d08f0f19dd0ff2b9463cb83afff58b0a86551dae73468067fc68458",
+      "bytes": 8815
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/cameras.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/cameras.py",
+      "sha256": "7cbaf55969d63b80895da8cc3e56ae357898cb3614b03fe93ffa2d29e0f71597",
+      "bytes": 4360
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/cameras_panda.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/cameras_panda.py",
+      "sha256": "11516c14904fde871ebd4a686f2553bffc2b8776b246a90e65dd688577f857fe",
+      "bytes": 591
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/feature_reference.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/feature_reference.py",
+      "sha256": "e08d96bb2a04bd89d1a156169ba1624b364bd7b9fbcb823aa7db01d7d42df074",
+      "bytes": 5258
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/franka.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/franka.py",
+      "sha256": "2f7a59501acf71a8184469bb7c1ac86da24f4e13b79ab047506b3644d6842a25",
+      "bytes": 14430
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/mock_feature.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/mock_feature.py",
+      "sha256": "728a4fdaf7dce4bce09e6412d049f7db96e62cba0583afa658e9e6511a3eb6d4",
+      "bytes": 4908
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/panda_policy.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/panda_policy.py",
+      "sha256": "64a4b6d01df368757b140d9ada69280a32bfabe104c2ac23bbd83cd25f13ca91",
+      "bytes": 5623
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/policy_reference.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/policy_reference.py",
+      "sha256": "62a1828814bf08337ec0f54c4cbe5511f4c6d8ad7b40d5d27c738e2dcd0ffbe3",
+      "bytes": 2134
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/rlinf_feature.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/rlinf_feature.py",
+      "sha256": "daabf960526e3ffd0815d6a8f274cd606d44e925c418718493834834f3e61e12",
+      "bytes": 13434
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/robolab.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/robolab.py",
+      "sha256": "054bd8fa24fd1b6e1118e78e349fe4471bc5f70c1bdee28f5519aaca321587f2",
+      "bytes": 847
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/source_audit.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/source_audit.py",
+      "sha256": "7d41c6e4c2bcfc2e90e1d3785e3684dcd18a00453e881637f248f7934e32e833",
+      "bytes": 8657
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/tokenizer.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/tokenizer.py",
+      "sha256": "f4bd40d3162788587a70890456f9d15bc6c0dba5bb79328097bc49969563fad2",
+      "bytes": 1179
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/upstream_profile.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/adapters/upstream_profile.py",
+      "sha256": "4b5ad8e70950c9ff5fd001dc05cd373a8046101fe910b00c3641fcf242fc83d0",
+      "bytes": 2873
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/config/__init__.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/config/__init__.py",
+      "sha256": "8b178ffbe523d01235ff22ac92d37669fd3465b531a63b72ff41fd9913ff5fbe",
+      "bytes": 643
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/config/design_config.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/config/design_config.py",
+      "sha256": "18d36964f54e7d66b3725eb5dbb93c39fdeffc5e25148cf3fc77d87348e04085",
+      "bytes": 22750
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/config/runtime_config.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/config/runtime_config.py",
+      "sha256": "c406f420ccfcca5bd0d56d8fe9923b99776ddce7c4c5065b30f0b5a90806682d",
+      "bytes": 7249
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/contracts/__init__.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/contracts/__init__.py",
+      "sha256": "b4de9ca39ec8700a5c20d42e488ced4a5f2af71ca405ad2f219e3b5ba70ba589",
+      "bytes": 2592
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/contracts/clock.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/contracts/clock.py",
+      "sha256": "19244066a5c7903b14f6e0cac28853756e235ec4518fe2cd0dbee418cd015a75",
+      "bytes": 3715
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/contracts/errors.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/contracts/errors.py",
+      "sha256": "6a5e721558fe6a1a5f0caf52a3404934d773cd052c3b5432c692a311bd514f43",
+      "bytes": 2262
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/contracts/observation.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/contracts/observation.py",
+      "sha256": "4a7bd317b6b71acac2559f7a6751a340ba5eb4115a65cbbe2e55fec220dfcd68",
+      "bytes": 4403
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/contracts/physical.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/contracts/physical.py",
+      "sha256": "5930fc10ba5dd990d78fc413f32dc1bceca58cbd1639176c61f0cf2a08c9f26d",
+      "bytes": 1883
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/contracts/plan.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/contracts/plan.py",
+      "sha256": "03e71007cc7c92d9b4d6c330409bf6e2e77127b9cc8b86b83d044d68efd13c96",
+      "bytes": 10968
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/contracts/spaces.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/contracts/spaces.py",
+      "sha256": "b94001df78c3bf2f7b30ea516ce9333d9741e138a3d268104ec17793e33dc791",
+      "bytes": 4369
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/contracts/transition.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/contracts/transition.py",
+      "sha256": "30adf1107ec3ff2b321098f5244d4aa768b479e9508fc1df219001db5aaf2edf",
+      "bytes": 10794
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/contracts/versioning.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/contracts/versioning.py",
+      "sha256": "86becb153b42dad32803caf537b3466ac385612a8b267b096011d0cf1ec295d7",
+      "bytes": 4868
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/data/__init__.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/data/__init__.py",
+      "sha256": "041abb92714d0b5bc6508d26bd6d561d15f373e21edfa52aa3a2164cfb12374a",
+      "bytes": 367
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/data/auditor.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/data/auditor.py",
+      "sha256": "6a58de4160eb0a6503d69d9a3fc51b05cbecc09053d046ea63f374b1c5772236",
+      "bytes": 16901
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/data/physical_sft.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/data/physical_sft.py",
+      "sha256": "ffe109a75207e2990a3ae08dcc3e59a8b518a9c56e20d37e452bbcd6bbb042e9",
+      "bytes": 4946
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/data/profile.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/data/profile.py",
+      "sha256": "d02b3f30181d14974c7e9af63dcb881936f89d391b5c60e772fe75e18df6de53",
+      "bytes": 1673
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/data/prompts.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/data/prompts.py",
+      "sha256": "db8c1b23f05cf7973a9be2f010e6a0467a383d96b6a655ba37fda277eeeb12f1",
+      "bytes": 1123
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/data/windows.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/data/windows.py",
+      "sha256": "27e791c96fcadbb2ea39c9c5a0325ae52e2d9c90666b724359caccb337fe2c92",
+      "bytes": 4040
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/__init__.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/__init__.py",
+      "sha256": "ca4c8fd45af941a7888bd3783407fcdd3de622cc06a3b07b08079bb442c4ed57",
+      "bytes": 47
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/assets.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/assets.py",
+      "sha256": "3cb110bbdb1fa8d9c9521a44a97fe903d252ffd4587e33446bc749c68ec70180",
+      "bytes": 14113
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/bridge_preflight.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/bridge_preflight.py",
+      "sha256": "a8c7cf8114ce0c537bbf6f8268b49db614a23ba3d2572976d02e1803d4800fbb",
+      "bytes": 3819
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/control_owner.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/control_owner.py",
+      "sha256": "41edc91c611b8355bad545b4e7415de80e5f7e5efbe3879872c83d75dd031811",
+      "bytes": 10403
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/correction_data.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/correction_data.py",
+      "sha256": "299e0b47687d4add26a8ec80c6b1634013761af2e61606e075e2c18cb67129a9",
+      "bytes": 2683
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/correction_io.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/correction_io.py",
+      "sha256": "362a4db66b9d35db7f6dbeb25b24b085ad2b5612a3d14f6bb8b00ecd60d982db",
+      "bytes": 3118
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/correction_training.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/correction_training.py",
+      "sha256": "7881ba2568c0d97eb29c0e852c5fe1139f4f9826b28254d0c5f516706071d6ab",
+      "bytes": 11182
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/corrections.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/corrections.py",
+      "sha256": "50974b83e2373bbe93aeb072f490754430af2e97a7d5aafa40add08e6d058258",
+      "bytes": 8549
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/episode.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/episode.py",
+      "sha256": "2f2013a1435bd6cafb3168eb45ce59f696b44b61c26fc730daaffc8a582513cf",
+      "bytes": 1676
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/managed_eval.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/managed_eval.py",
+      "sha256": "aacea5368ac9e5040036b05262e6250a92393d409160ad6209921c9f5a3f7274",
+      "bytes": 9454
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/model_loader.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/model_loader.py",
+      "sha256": "af57ac271b41a6dc72e336a58bb9f80987dd31f6419e6a0f0353713e874fe494",
+      "bytes": 13388
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/offline.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/offline.py",
+      "sha256": "7eb188c1b82e075f2db1f2a20b853af39641a333c6e8f9ce0074e11f032e7243",
+      "bytes": 7048
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/planner.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/planner.py",
+      "sha256": "f28e486374b84ca15df0c9f3e50d5f14f2a28c46022371d246ae5f15c45707b3",
+      "bytes": 6399
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/prefix_cuda_graph.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/prefix_cuda_graph.py",
+      "sha256": "69baa33271c02b2f4f5ab7152cc95d4d36c1be728dd51473171a90a0138deceb",
+      "bytes": 4335
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/reward_override.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/reward_override.py",
+      "sha256": "1cc97b39e484dc9738f7152c044fd6408c45e11e768a7150ac0fd436d1c6354b",
+      "bytes": 2097
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/rollout.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/rollout.py",
+      "sha256": "8f6083dc0320b1e148791396ee4b2042f63a2a2d3a08405afd28af19584ce545",
+      "bytes": 8170
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/rpc.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/rpc.py",
+      "sha256": "e7884f39776b5ef25913690cc5a34f07262b6a7da5c2692365af7bc0a4192fb7",
+      "bytes": 8936
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/runtime.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/runtime.py",
+      "sha256": "db79d8c2787910be284f7d10173a21562b6ac7730ffdfa125063c14005712441",
+      "bytes": 8564
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/session.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/session.py",
+      "sha256": "58c8f0e90c8406f2099b90f0aa3e0d271e98f34be3bc75fb880cc3962c2e116f",
+      "bytes": 24851
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/session_env.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/session_env.py",
+      "sha256": "d8625c14b90058d2ca68d3dd3bcd1fb9bd5fffcbe3ff2733a1b28842092d9436",
+      "bytes": 8608
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/stage2_session.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/stage2_session.py",
+      "sha256": "da8abbe1a074c4db4e1435775f564906052a08ccaae9c21cae89d42da2b653bd",
+      "bytes": 8821
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/takeover.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/takeover.py",
+      "sha256": "e12e975e00477257920f10afdd383b1ea4a33f6c7395364ae75cd8a363717165",
+      "bytes": 5989
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/training.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/deployment/training.py",
+      "sha256": "f493a2fcf35e9c6ae6cad10af4804be51c33cd586311d456393c32c7412fec26",
+      "bytes": 13028
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/evaluation/__init__.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/evaluation/__init__.py",
+      "sha256": "ed6cf9f33ce14fdad41e70ff26d32fe261095f8ccdaaec720dc9d2ba3106b613",
+      "bytes": 71
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/evaluation/toy_env.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/evaluation/toy_env.py",
+      "sha256": "eee26941464315d0558a708151d51342b05d71756558d946750f4871a523b44a",
+      "bytes": 3756
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/evaluation/toy_pipeline.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/evaluation/toy_pipeline.py",
+      "sha256": "4faac0956fd05417bf89bd79495fba3f2c31309b64ce5c254372a2f99aa3a9ad",
+      "bytes": 23829
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/__init__.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/__init__.py",
+      "sha256": "09931cffa35dc30800d8ec613765770c7fb16052e82ee7dfc259ad5b375dabdb",
+      "bytes": 1303
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/actor.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/actor.py",
+      "sha256": "d1f33503a9189f13c16336330add0d7f6daacbd51861a9a4b81b5adfe125bc05",
+      "bytes": 6221
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/checkpoint.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/checkpoint.py",
+      "sha256": "e459a034d2a0da5a643227cf2bd28919c4fa4fa3ff57f04d9186ac9cdaa26edf",
+      "bytes": 8454
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/critic.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/critic.py",
+      "sha256": "65f13705bcfbfe785e428e774eb4734ecb604dcd1c6210e7c9631c76b6211783",
+      "bytes": 3921
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/defaults.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/defaults.py",
+      "sha256": "205229dd1546e61a85b36d83e9ceee05dde342a2c0ddce9c3b091bb989d60a5f",
+      "bytes": 1882
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/losses.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/losses.py",
+      "sha256": "3336da5ef6fa0cf538606ea4ea7c6cf34025314f000228ee7d0944a3e0299f3a",
+      "bytes": 11907
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/planning_state.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/planning_state.py",
+      "sha256": "d3a52bd6244e50785df135beaf0c748c4e3725a9f1a22d70d64f66f8c1d3b2c3",
+      "bytes": 11377
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/replay.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/replay.py",
+      "sha256": "d0c7c14d886babc227d54d826069b6761ecfb8a0e9b608feab80728fc86144d5",
+      "bytes": 13083
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/serialization.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/serialization.py",
+      "sha256": "40f837cdb1bb283e20a3277046793c9e176df88686247062c4236466b23da54f",
+      "bytes": 712
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/transition_assembler.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/learning/transition_assembler.py",
+      "sha256": "4b21236125c7db98f5598fefb3bf5df8f76f9bbc308b7447fd9113662bd1193b",
+      "bytes": 16651
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/rtc/__init__.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/rtc/__init__.py",
+      "sha256": "bae9f5cabd9738b9622f109c7724b3951d407b12a7debea19767a007359afa74",
+      "bytes": 1458
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/rtc/approx.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/rtc/approx.py",
+      "sha256": "4e04e857f32bcb80ace5c72c3a24ef9a4a28389d16e2d23f8eb91f164597f842",
+      "bytes": 6526
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/rtc/canonical.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/rtc/canonical.py",
+      "sha256": "9c14a39051cbf018bf7be74b64418ff835cd6652d85fafc2bdb3e25843c1d672",
+      "bytes": 3311
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/rtc/dispatcher.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/rtc/dispatcher.py",
+      "sha256": "ea90a2ebaa564845030f6b1bcccd6b7163fd70be71d81aaf70107aa0bd06a5b0",
+      "bytes": 4823
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/rtc/full_vjp.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/rtc/full_vjp.py",
+      "sha256": "7af1351b594b0db6536ba5ea3c9a2a2adcc9eeb64344c31468366a568713f114",
+      "bytes": 10886
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/rtc/prefix_weights.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/rtc/prefix_weights.py",
+      "sha256": "555ed7a3c70bcabfbaa11714a82c741fce693a4594bd4e418e09e917ad53a86b",
+      "bytes": 4022
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/runtime/__init__.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/runtime/__init__.py",
+      "sha256": "9262fe31ab0d4a9439e9f8d3bc36d7bf6afbbfc6c60ec4b865a178ad8c39fdc7",
+      "bytes": 1044
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/runtime/controller.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/runtime/controller.py",
+      "sha256": "2e01c6ed51362225119131a1b04f00c2b091a2249a8e1da0b5bbaee9ccada200",
+      "bytes": 26329
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/runtime/ledger.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/runtime/ledger.py",
+      "sha256": "28e95a48cb934a051ab06c1b287b39ac9fe2bdf71020d86554d5c8495313a49d",
+      "bytes": 3582
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/runtime/queue.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/runtime/queue.py",
+      "sha256": "20acfa0f74de90989d799e59199d80ae243501f6b3cbde23801df4a3f7eca7df",
+      "bytes": 24297
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/runtime/recording.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/runtime/recording.py",
+      "sha256": "7bfb61e671f1db2ceb61e744efac1fe6c2171f0d1a8d20ab171b773409eb5cc0",
+      "bytes": 4512
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/runtime/scheduler.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/runtime/scheduler.py",
+      "sha256": "2ead9e20d560315f99c8ed585fe8d1bddee5cdee41998f5e1cae592dafb3cdd0",
+      "bytes": 22058
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/tools/__init__.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/tools/__init__.py",
+      "sha256": "9984d7021022ec02841839c063f927cc9f29b3969440e80dfc24dfabc8dd5d9f",
+      "bytes": 57
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/tools/cli.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/tools/cli.py",
+      "sha256": "0eb35d68f2e4bc9334d845e3ef55bc72c001e840daea574b6c2d3702d6fb14f6",
+      "bytes": 32012
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/tools/gradient_audit.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/tools/gradient_audit.py",
+      "sha256": "c38c4dfc0bdbeaaf88a3f4b649ff8d6e6061776ca253731064b97aa97ad37d49",
+      "bytes": 4239
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/tools/planner_server.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/tools/planner_server.py",
+      "sha256": "c8f55b51ae4f16b31ea2c38579e26c08ead5bf3b5b1f1004c60ea17f931c7466",
+      "bytes": 9882
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/tools/run_context.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/tools/run_context.py",
+      "sha256": "382ded20499720b1db646b0682db98fdc71dad37676121473363807f69e24676",
+      "bytes": 4034
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/pi05_rlt_rtc/tools/test_ledger.py",
+      "source": "experiments/gello_corrections_20261103/pi05_rlt_rtc/tools/test_ledger.py",
+      "sha256": "2a2c4841304bc41e9b18b1c35c6cf244c72a6fe9208ac2e695c45eda67d55189",
+      "bytes": 8947
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/__init__.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/__init__.py",
+      "sha256": "03dfd07d4a094745e2747d733ac1239f3205c8403bcea34ac4560852069be928",
+      "bytes": 1007
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/group_bulk_read.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/group_bulk_read.py",
+      "sha256": "d7e5d176d6ab36023c0c947b599b7e2ffe73f83fd926befb1026ef71984ba5ed",
+      "bytes": 6309
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/group_bulk_write.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/group_bulk_write.py",
+      "sha256": "723604c0f6bec0052b092541e6e89ce1d8266f5653ae6e48eee890a3c968b6a3",
+      "bytes": 3298
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/group_sync_read.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/group_sync_read.py",
+      "sha256": "6719c38607d87f04ee11863333dd2a87c36f411209973a6fdb46c2577eb22604",
+      "bytes": 6089
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/group_sync_write.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/group_sync_write.py",
+      "sha256": "837b1b103bff4822331f771869eef7fdd7a767d5077d5514958dd495a19ffdcd",
+      "bytes": 2752
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/packet_handler.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/packet_handler.py",
+      "sha256": "8ba41cbd2f3c7e701ae86b0b26b7f676fa46e5256bce3944591e6e9e8b65a8e4",
+      "bytes": 1213
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/port_handler.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/port_handler.py",
+      "sha256": "95f77b12cd88d7d3584dd593df30a14a68cf9781074edc741b776211eac324f7",
+      "bytes": 3950
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/protocol1_packet_handler.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/protocol1_packet_handler.py",
+      "sha256": "98f98563c4531f791f4e473fe810b28d1def926f58762b308ff623b9dc2061fb",
+      "bytes": 18292
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/protocol2_packet_handler.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/protocol2_packet_handler.py",
+      "sha256": "b67d515ec5c89c73ac9096e463253e1fb4e95f47f7a67bb598c709921ef97f3d",
+      "bytes": 32482
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/robotis_def.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/dynamixel_sdk/robotis_def.py",
+      "sha256": "8b5b751973ff54ee4c039440bc7501e0ad2ffaf313387d7fad548ced0a24fa1a",
+      "bytes": 2117
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/__init__.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/__init__.py",
+      "sha256": "5dec897fdef45a0eaf63eacda1e01d62e1e75490302584ae0238f75376592344",
+      "bytes": 3212
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/__main__.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/__main__.py",
+      "sha256": "a12a559270d2d98aa7d89757943b39164d04f1c71d88b209697bcf5948b3423d",
+      "bytes": 45
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/rfc2217.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/rfc2217.py",
+      "sha256": "9dc1bfe53b38d8cfd39bfed737743b884db8cbe946730bb68c2dcc15212fe817",
+      "bytes": 59700
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/rs485.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/rs485.py",
+      "sha256": "f6deb2b8672d7b7ea093c1b553a3606e82951ad25416ab5ba403978fbbd8c4cd",
+      "bytes": 3305
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/serialcli.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/serialcli.py",
+      "sha256": "bb94271bdd14c6db6ab061bd9d88248f4194c9bd3020ec739548312788027338",
+      "bytes": 9190
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/serialjava.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/serialjava.py",
+      "sha256": "01c1cba760ffb008a1bbb2ffc02720f26b64edeb5feb30320782ffb6eb61568f",
+      "bytes": 8480
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/serialposix.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/serialposix.py",
+      "sha256": "5d56f98513391e1766a1847a04e2e1202ced4172a152803ba1c823a149a9b6f9",
+      "bytes": 35127
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/serialutil.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/serialutil.py",
+      "sha256": "3c84f8c7c319f161a85d6f8db5bedc4f65255714589bdcbeee6f2daf65a17c0a",
+      "bytes": 21797
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/serialwin32.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/serialwin32.py",
+      "sha256": "17681ea9a650120c71db1aae9b8881301a40d38c47b34bb0da050e3f5bfbbe00",
+      "bytes": 20284
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/threaded/__init__.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/threaded/__init__.py",
+      "sha256": "8a45e52987a3465cf30b37bd930c51fee00129ad587ee4f2a9c3e3c375515752",
+      "bytes": 9319
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/tools/__init__.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/tools/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/tools/hexlify_codec.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/tools/hexlify_codec.py",
+      "sha256": "1512523bca5f8cce8047dfd206a2f7e1ee742d592f9737c529d98249c1a7e34f",
+      "bytes": 3677
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/tools/list_ports.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/tools/list_ports.py",
+      "sha256": "7830e8c888684b77fd0f7095a6d86a95052a891da5f97d154c618e063b8ce1ec",
+      "bytes": 3389
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/tools/list_ports_common.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/tools/list_ports_common.py",
+      "sha256": "c791c88211b8348cfe5dfe625fa1a4ef165f75e69db36b6a0ac7f226187721fb",
+      "bytes": 3736
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/tools/list_ports_linux.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/tools/list_ports_linux.py",
+      "sha256": "5275355583f534923b27c667ee063e03699b8b596e81b159495ced7d7f0fd695",
+      "bytes": 4503
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/tools/list_ports_osx.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/tools/list_ports_osx.py",
+      "sha256": "7a879f3068ae26a0be382bbd6805aaa895fbe701a5073a2a67a91d98c03cd8b3",
+      "bytes": 11178
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/tools/list_ports_posix.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/tools/list_ports_posix.py",
+      "sha256": "118a83e6445b9347f66b9b1c6914b8b605860729e4a551fbee36bf1ba4b75211",
+      "bytes": 4535
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/tools/list_ports_windows.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/tools/list_ports_windows.py",
+      "sha256": "53813370e02253ae8b5a83dd317236a0e3382c2779bcac0edc381e4d3e8cdea7",
+      "bytes": 16021
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/tools/miniterm.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/tools/miniterm.py",
+      "sha256": "7d7be4114f4513253b1cf48d13c6dd5f638282219880279ed3aeb2179f27a2db",
+      "bytes": 37840
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/urlhandler/__init__.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/urlhandler/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/urlhandler/protocol_alt.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/urlhandler/protocol_alt.py",
+      "sha256": "fa46280a0cbd1b231637ac02f0e7b0f052f4e0b8cbe0db71dc71d5a924ca19c4",
+      "bytes": 2033
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/urlhandler/protocol_cp2110.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/urlhandler/protocol_cp2110.py",
+      "sha256": "8942ce4f855dc36d0fff0da37d259db74ae8518d4abbcc495471d873a7772266",
+      "bytes": 8540
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/urlhandler/protocol_hwgrep.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/urlhandler/protocol_hwgrep.py",
+      "sha256": "19d29d43db44c4a447273b223dc43d13199a2daebe03bd6ae768b88d0c66a019",
+      "bytes": 3159
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/urlhandler/protocol_loop.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/urlhandler/protocol_loop.py",
+      "sha256": "e5b6abaeefe17f03646b28e3073e30dec9c1267d06ec2f9f1bbf9098769e4d6a",
+      "bytes": 10623
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/urlhandler/protocol_rfc2217.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/urlhandler/protocol_rfc2217.py",
+      "sha256": "20f3bcaf7a4537ac840e5d59bf68e05277c86b4b50d2263466c0fcff184051e4",
+      "bytes": 317
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/urlhandler/protocol_socket.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/urlhandler/protocol_socket.py",
+      "sha256": "428b5a1c23ddeadf74dd6ffd7dad8bbffe6e125ab49e88abd828b5d1af7ced73",
+      "bytes": 14299
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/urlhandler/protocol_spy.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/urlhandler/protocol_spy.py",
+      "sha256": "15d51a538dfe6e5d4a5d3cbf4b81e1cf2195e61a54b28a66f08a93ad7d955fee",
+      "bytes": 9130
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/runtime_support/serial/win32.py",
+      "source": "experiments/gello_corrections_20261103/runtime_support/serial/win32.py",
+      "sha256": "964eaba1df661e4ab381c8666aa077ca08939260164cd434d0827df39663bd32",
+      "bytes": 11138
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/audit_gello_correction.py",
+      "source": "experiments/gello_corrections_20261103/scripts/audit_gello_correction.py",
+      "sha256": "6aa06787f46076df505ed8c2207681c1765643fb23998c63fcc3f239834fde4d",
+      "bytes": 2883
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/audit_model_transforms.py",
+      "source": "experiments/gello_corrections_20261103/scripts/audit_model_transforms.py",
+      "sha256": "60deb4bf6a08bd9741ea001a74c7157f245fe59e90962d955267269921f52910",
+      "bytes": 4384
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/audit_physical_chain.py",
+      "source": "experiments/gello_corrections_20261103/scripts/audit_physical_chain.py",
+      "sha256": "0b611b80d7f9e64561fd9ee553950092d4a4292381854cc64f77112b76bb970b",
+      "bytes": 8497
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/build_bridge.sh",
+      "source": "experiments/gello_corrections_20261103/scripts/build_bridge.sh",
+      "sha256": "9af21cccb4230c9c81c3826cdd953f660db89be243cd2784cf9cdaf370c83a98",
+      "bytes": 819
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/check_bridge_interop.py",
+      "source": "experiments/gello_corrections_20261103/scripts/check_bridge_interop.py",
+      "sha256": "2eb83c362cae5924d9f8e6e49d1751f3bafc9a9975e2b652d29e1c46c085381e",
+      "bytes": 3983
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/check_v2_dataset.py",
+      "source": "experiments/gello_corrections_20261103/scripts/check_v2_dataset.py",
+      "sha256": "ad77320817325dc909dedcb5f351c8645fd42f81ebab29d0204f676af13aba70",
+      "bytes": 1393
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/collect_pi05_gello_corrections.sh",
+      "source": "experiments/gello_corrections_20261103/scripts/collect_pi05_gello_corrections.sh",
+      "sha256": "fd531d9fdb18e40edf0a5068641d38ce1ca573f845df8f8e8eda2a7fd3a0f560",
+      "bytes": 345
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/data_pipeline.sh",
+      "source": "experiments/gello_corrections_20261103/scripts/data_pipeline.sh",
+      "sha256": "c50a7c84d558373606e283d76b94bfd3be74caadd76371bf5dff0204f79c2174",
+      "bytes": 593
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/eval_pi05_correction_actor.sh",
+      "source": "experiments/gello_corrections_20261103/scripts/eval_pi05_correction_actor.sh",
+      "sha256": "b145d4857a5e41571c64414907110b10fab985be3ceac2c6badefb5169fee609",
+      "bytes": 538
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/evaluate_stage1.sh",
+      "source": "experiments/gello_corrections_20261103/scripts/evaluate_stage1.sh",
+      "sha256": "bae17042ccfa8fdf5e5b06f31cb66daff449128b9420571cbc13225d1fdc6878",
+      "bytes": 261
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/generate_test_dataset.py",
+      "source": "experiments/gello_corrections_20261103/scripts/generate_test_dataset.py",
+      "sha256": "dbc35037b147ac32be3be5d8d865991879a257b3f2c035a43bd63aa52410d58f",
+      "bytes": 1623
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/prepare_reward_comparison_data.py",
+      "source": "experiments/gello_corrections_20261103/scripts/prepare_reward_comparison_data.py",
+      "sha256": "547f8d66e59124a4b5253eb4e775a7343af7e600aa934cc87a919b7a8e5e2526",
+      "bytes": 2712
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/prepare_stage2_config.py",
+      "source": "experiments/gello_corrections_20261103/scripts/prepare_stage2_config.py",
+      "sha256": "ee9c3e6c41c00fde138766ed2e4647e539cff5311652688b0a93da12849eb63c",
+      "bytes": 1370
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/run_cpu_tests.sh",
+      "source": "experiments/gello_corrections_20261103/scripts/run_cpu_tests.sh",
+      "sha256": "d0a02bdc89e28e1f9cc32dcf080be651c4cd43eb9a5e017308d5f5bc54da00f0",
+      "bytes": 284
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/run_pi05_stage1_8000.sh",
+      "source": "experiments/gello_corrections_20261103/scripts/run_pi05_stage1_8000.sh",
+      "sha256": "e61f2475c9d229b03eb6f2dbbbab67903a49832a1d2a7d72b58a3dc869ca16c1",
+      "bytes": 4222
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/run_pi05_stage2.sh",
+      "source": "experiments/gello_corrections_20261103/scripts/run_pi05_stage2.sh",
+      "sha256": "0897e504165186232544e24efd1dfdf5e9acaed8281067737f0c8478d1048b19",
+      "bytes": 636
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/run_source_audit.sh",
+      "source": "experiments/gello_corrections_20261103/scripts/run_source_audit.sh",
+      "sha256": "e91203f5dc48563ed50fc245fef0467f1f3dbd0abbc6886b720d308e8bb3c216",
+      "bytes": 729
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/runtime.sh",
+      "source": "experiments/gello_corrections_20261103/scripts/runtime.sh",
+      "sha256": "020ddd503bc7aa5c34853ba30e05299c8bf3c3d8b561fdde95f8e9679d3dffbb",
+      "bytes": 464
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/setup_env.sh",
+      "source": "experiments/gello_corrections_20261103/scripts/setup_env.sh",
+      "sha256": "4edd2fae78fc976c9e8587e6d129e8cd74e342c6e0e00678efa4b830d684b2f2",
+      "bytes": 356
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/setup_runtime.sh",
+      "source": "experiments/gello_corrections_20261103/scripts/setup_runtime.sh",
+      "sha256": "3e26ba4f3340f60a307fb1c5435651b64dd8d57ec9a1545ffa1b1b93d7f7fa89",
+      "bytes": 1053
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/stage2_cpu_smoke.py",
+      "source": "experiments/gello_corrections_20261103/scripts/stage2_cpu_smoke.py",
+      "sha256": "b14db59e876884c0572a9f8c240ab9ad99f57643dc765cdec6a18823b7ec22d0",
+      "bytes": 2493
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/start_franka_bridge.sh",
+      "source": "experiments/gello_corrections_20261103/scripts/start_franka_bridge.sh",
+      "sha256": "2737a45f456a2e4ba1089fa5a0588236bf8fe7d7ae319951d95ae5af0cb87eef",
+      "bytes": 1611
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/start_stage1.sh",
+      "source": "experiments/gello_corrections_20261103/scripts/start_stage1.sh",
+      "sha256": "7e099dd98202f5bf2323e85809dbe10e2fe2efb635311298b6289908a74ea0e6",
+      "bytes": 588
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/start_stage1_4xa800.sh",
+      "source": "experiments/gello_corrections_20261103/scripts/start_stage1_4xa800.sh",
+      "sha256": "df28a7fbb9037702e3b19558a17fbc136cdc4eb449cffbc2c0e8a550b50d9de0",
+      "bytes": 730
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/start_stage1_integrated.sh",
+      "source": "experiments/gello_corrections_20261103/scripts/start_stage1_integrated.sh",
+      "sha256": "d52c67d6ff65a6b01ae50d4e1fc337f1a1241e89dd0de8e1e5c37b47b5475c68",
+      "bytes": 241
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/test_bridge_gentle.py",
+      "source": "experiments/gello_corrections_20261103/scripts/test_bridge_gentle.py",
+      "sha256": "aa851fd130917dd49b9492ca6d2e841644282ad9b545e44136757529922e500f",
+      "bytes": 2288
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/train_pi05_gello_corrections.sh",
+      "source": "experiments/gello_corrections_20261103/scripts/train_pi05_gello_corrections.sh",
+      "sha256": "888850b19e4e1470761edc026eb48bcc7b9c7d667662359e6ffd3c522a7bb3df",
+      "bytes": 535
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/train_reward_comparison.py",
+      "source": "experiments/gello_corrections_20261103/scripts/train_reward_comparison.py",
+      "sha256": "3c3aca465a7cd607f909dd5a58555161e5cf0d397dc54006455bca8084da5184",
+      "bytes": 5246
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/validate_cuda.py",
+      "source": "experiments/gello_corrections_20261103/scripts/validate_cuda.py",
+      "sha256": "d0d997224b37743332fb15d4fd36d2ea4df9e606af98c5308afa2d7b523a9c96",
+      "bytes": 4055
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/validate_no_motion.py",
+      "source": "experiments/gello_corrections_20261103/scripts/validate_no_motion.py",
+      "sha256": "ae9b0ef29dfd3d679e3abe462c868912342bf960170acee892d1bf57254d98a2",
+      "bytes": 3404
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/scripts/verify_stage1_windows.py",
+      "source": "experiments/gello_corrections_20261103/scripts/verify_stage1_windows.py",
+      "sha256": "ea242c74dc8c882d3d66bf05b1ae2c6b1cdc143c3b99f988f0181167ccea85a9",
+      "bytes": 8306
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/RESULTS.md",
+      "source": "experiments/gello_corrections_20261103/tests/RESULTS.md",
+      "sha256": "642b0bbc4b03d5bb10d17c42c6b2a68d90bedc56852c4129c7626c4fe41989f9",
+      "bytes": 5294
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/__init__.py",
+      "source": "experiments/gello_corrections_20261103/tests/__init__.py",
+      "sha256": "0572d8e29904d0dff612bef94c27c1edc529cee5daf9b74be1090c266c7a5357",
+      "bytes": 83
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/conftest.py",
+      "source": "experiments/gello_corrections_20261103/tests/conftest.py",
+      "sha256": "11bae7b32e6a85ff78b8076180b9f12c4ab19f613dbffa5cf1dc75b9bb2e5854",
+      "bytes": 2730
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/helpers.py",
+      "source": "experiments/gello_corrections_20261103/tests/helpers.py",
+      "sha256": "2edc2a3c27e79e713f2834de8c1b9e007b3a0e17bf91585a27e6aa737cb095fc",
+      "bytes": 8889
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_auditor.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_auditor.py",
+      "sha256": "581bb4bce2e4a0713fd8cc951cb1d36577aa91253d487549545df8fd080286df",
+      "bytes": 3078
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_bridge_preflight.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_bridge_preflight.py",
+      "sha256": "f3f9f3f0242f1e91e3bb3d54dd86e7633626e3ac54b1cb954a6e25a6db3e586b",
+      "bytes": 2426
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_camera_timestamp_alignment.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_camera_timestamp_alignment.py",
+      "sha256": "7e5c43a8ee4f59f2119ba1341754cd57ae01a4078c06e140683e3a16f49df6c9",
+      "bytes": 1970
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_control_owner.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_control_owner.py",
+      "sha256": "b40e7846c7004d6ac9f0cd4f6848a4010d7c0c22e8e504040251867494aaf85b",
+      "bytes": 6135
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_correction_data.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_correction_data.py",
+      "sha256": "472595212ccada21307704548352cd3ac9568a15112f1404186f262d5a5ff8c1",
+      "bytes": 2082
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_correction_session.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_correction_session.py",
+      "sha256": "0127e6139be8e54529c0e1f48b39fdd3272aebc0b8c3dbfa7de13d2bc8b92407",
+      "bytes": 3672
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_correction_training.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_correction_training.py",
+      "sha256": "bdb460a9b785101fbf5bd9fc1d6d5574080c5916d4613d9f36b674e6a3fea060",
+      "bytes": 3516
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_data_contracts.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_data_contracts.py",
+      "sha256": "9f27bf52d6f59dc171dc0e64944fb60d89d4e5268d54792b2fa4e669a63d0993",
+      "bytes": 6992
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_deployment_assets.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_deployment_assets.py",
+      "sha256": "ed5b24b6cd2f02ab3ede03c5ccbedb08008acb50f0c8c26a16ecd63238075100",
+      "bytes": 4433
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_episode_protocol.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_episode_protocol.py",
+      "sha256": "9c6f11aa308ae24b0320c35bc70a8e9399ebc687dd61682a22b198b5ded08c9b",
+      "bytes": 1027
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_franka_bridge_process.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_franka_bridge_process.py",
+      "sha256": "a178ff44a908b418290bc4ee388395ff9a830953330dd0fc2f4384115566518b",
+      "bytes": 4499
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_integration.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_integration.py",
+      "sha256": "9092ad61dee485c3f1e8ff2b2f826d28fe6bb17d2f3f877ab5469ac6812d7f15",
+      "bytes": 7587
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_learner.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_learner.py",
+      "sha256": "0cdca9e82e0355c78e9323706e03e35bfbbed25eee5dc59a040cd94b67100c9e",
+      "bytes": 18066
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_managed_eval.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_managed_eval.py",
+      "sha256": "0825c06736be0179da2d136b8c3ea5dca2c253f9f3194b1249b0268b3f42f641",
+      "bytes": 2811
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_model_factory.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_model_factory.py",
+      "sha256": "5e7e20bd6e1fdfee728bc2dbede7b9ae44f9ce8cb79b67bcd6a1ca6d677e0408",
+      "bytes": 3658
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_official_ac_structure.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_official_ac_structure.py",
+      "sha256": "6244bb5342f9c504dd2d913d638dced146823b661cec7abf16ed31849ba26f96",
+      "bytes": 3082
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_official_stage2_settings.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_official_stage2_settings.py",
+      "sha256": "070ba33d4658948ea38fab17254ea881be84b22d8dd7addc0928a8d2e4481230",
+      "bytes": 3401
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_offline_lifecycle.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_offline_lifecycle.py",
+      "sha256": "c6ee82c46df1121d57cc530c82a24dd24190b392efc5721ab43a8fda1900c0e6",
+      "bytes": 6339
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_owner_transport.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_owner_transport.py",
+      "sha256": "135a117fe16653593fda09e9ada2fbab21db073cd1bf7650e80035fc559689c0",
+      "bytes": 2376
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_physical_contract.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_physical_contract.py",
+      "sha256": "c32fdb11fbb17c27a3ab1791396b4b6d095a9f4f0081d92b1f3c35297302ebdf",
+      "bytes": 5567
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_physical_rollout.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_physical_rollout.py",
+      "sha256": "ac7f03a522ce9025aad3dc798e595da3d78cfe0c63beda2c26c9d0893d9d14a6",
+      "bytes": 5438
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_planner_stop_timings.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_planner_stop_timings.py",
+      "sha256": "daac017205da52fcc04fb42fdc3a88dd6b6016ffea60bd52774591a45464a1e9",
+      "bytes": 1361
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_platform_integration.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_platform_integration.py",
+      "sha256": "fb5ad545cb3f8b646b8395e7ad8975fb3a3792499f89c7f61a2e74291ebc765a",
+      "bytes": 13521
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_platform_runtime.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_platform_runtime.py",
+      "sha256": "03bd81731d4d10204bf764cf5d1f7d538444e5f5eae38eff6d330b39b505854b",
+      "bytes": 2781
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_prefix_cuda_graph.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_prefix_cuda_graph.py",
+      "sha256": "66250dc57a4729a6b19cf9200f67098eaf43274cd410eb202bf9c7489883074d",
+      "bytes": 2435
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_representation.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_representation.py",
+      "sha256": "9d988c21b315862c755dfa31f15514fc293ca0a38aa2e87e7edbbcb33af636c8",
+      "bytes": 5068
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_resident_session.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_resident_session.py",
+      "sha256": "7c2675b26e9d11433da3b32c66764f3e4303d16e439d0fb84cac092da60c4b5f",
+      "bytes": 3720
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_resident_stage2.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_resident_stage2.py",
+      "sha256": "76f17faa4ae3429ecaac10abec42964eb4114662154297f6471272fb9e571906",
+      "bytes": 5175
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_review_adapters.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_review_adapters.py",
+      "sha256": "0f20e031c4567ca5d2cf0cb26f8732985561f6dc10f85ed389a2ee045a61d96a",
+      "bytes": 4869
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_review_controller.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_review_controller.py",
+      "sha256": "5171ae2962ffac93fcd79a35bc50d4efa3f5faeaab1d860cc407d5b665634f2c",
+      "bytes": 9729
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_review_data.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_review_data.py",
+      "sha256": "99cceec1946ca9879a7249297510b1beab57781588ac5e098e44e9835c302b6b",
+      "bytes": 2310
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_review_persistence.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_review_persistence.py",
+      "sha256": "81c23a0f7050a1de27797663538b1c5dc5c5c08c92f59879d9016e533fcf5fbd",
+      "bytes": 4591
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_review_regressions.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_review_regressions.py",
+      "sha256": "0a49efb988b42f0dfeb38f6b69d04af14925f2c6e20ac2d2b2fa20b01f4a4485",
+      "bytes": 9262
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_rtc_math.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_rtc_math.py",
+      "sha256": "4b34bc9141cfd08eac01f6fc474f63a62297cd58bc61438e87f147f75b768ba9",
+      "bytes": 11816
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_session_bridge.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_session_bridge.py",
+      "sha256": "e30899345aafa65a4834d56a3d9e45e82c73b43cef6985b49bc5c8a69b38447d",
+      "bytes": 5910
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_session_loop.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_session_loop.py",
+      "sha256": "e3bb33c41fc1393671be13f16fa6e745ef0ce1fd375ffd6fba8902c4eac08787",
+      "bytes": 14081
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_stage1_heldout.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_stage1_heldout.py",
+      "sha256": "aebd7399f433f7545369864ccbb27c4e5dac849bb774cf05c44044fcb6d98083",
+      "bytes": 1853
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_stage1_multigpu_config.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_stage1_multigpu_config.py",
+      "sha256": "e146c446038a09b1001c7f3f61f827dd06852b009c0ca0acd8dd6af4b7202148",
+      "bytes": 3431
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_stage2_robot_preflight.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_stage2_robot_preflight.py",
+      "sha256": "3c1fa1c395532aa6f9fb4f9a545e4b2681a2795fadfd96dea662224af2e82e20",
+      "bytes": 1172
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_storage_preflight.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_storage_preflight.py",
+      "sha256": "d927e9ea6557fc92f868a27f6fc3d1f85575d3e1e4a4bc0ab9ef84f407bc804d",
+      "bytes": 572
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_takeover.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_takeover.py",
+      "sha256": "db52b5aac68bcc45400632eb43564ccaa39e7a14098e33e336a29366d9250bbb",
+      "bytes": 4125
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_terminal_reward_override.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_terminal_reward_override.py",
+      "sha256": "f5469ed9d43230c8d71a285a819c3ad94ee2da4fd5911fb9ed512fb1f8cfcd1e",
+      "bytes": 5065
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_terminal_tail.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_terminal_tail.py",
+      "sha256": "00f06fc270ed0dfbc55363a0a9b91ac0ab6745e9eb17d563795f8bb6fd549b59",
+      "bytes": 2005
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_time_queue.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_time_queue.py",
+      "sha256": "fd01a286722961ed11d096182264b1e74b67e83397e6b91617fc5cb0d92cec0f",
+      "bytes": 23001
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_v2_interfaces.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_v2_interfaces.py",
+      "sha256": "4db143aaebf10d690863ed3e1588f766c53ab7ff5537ced5b8f865424a7a5ec0",
+      "bytes": 1463
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/tests/test_window_alignment.py",
+      "source": "experiments/gello_corrections_20261103/tests/test_window_alignment.py",
+      "sha256": "ec5fee472d9c40e5178a444e1281e290543b4032a28361cced832601a0d2873b",
+      "bytes": 2547
+    },
+    {
+      "path": "experiments/gello_corrections_20261103/validation.json",
+      "source": "experiments/gello_corrections_20261103/validation.json",
+      "sha256": "126039bc07781a3ee757196db6a2fa230f1396deaa1da300bd9a5f0cfd5b160b",
+      "bytes": 580
+    }
+  ]
+}

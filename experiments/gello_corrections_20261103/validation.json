@@ -1,0 +1,12 @@
+{
+  "original_policy_path": "/media/heinrich/SANDISK SSD/pi05-stage2/plug_rlt_afixed_20261103/rounds/round-000010/latest/policy.pt",
+  "original_policy_id": "queue-rlt:e3315c88621f07c836cdb0c62841a1764088619a674e9cd69077c681870a9481",
+  "original_policy_bytes": 15053853,
+  "collection_actor_enabled": false,
+  "correction_config_wire_matches_original": true,
+  "correction_eval_wire_matches_original": true,
+  "real_gello_read_verified": true,
+  "real_robot_motion_started": false,
+  "data_root": "/home/heinrich/pi05-corrections-20261103",
+  "critic_training_from_demo": false
+}
