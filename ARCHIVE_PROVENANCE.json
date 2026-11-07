@@ -1,0 +1,32 @@
+{
+  "source_date": "2026-11-07",
+  "base_commit": "124e43cdd0b35ea856f326be4dc5136bc9c58f6a",
+  "status": "archived, not promoted or newly validated",
+  "description": "Exact local source overlay; some source directories are partial snapshots. Historical results are not fresh validation. Data, weights, generated binaries and caches are excluded. Apply overlay only after comparing with its original deployed base.",
+  "files": [
+    {
+      "path": "experiments/afixed_collect100_20261103/pi05_rlt_rtc/config/runtime_config.py",
+      "source": "experiments/afixed_collect100_20261103/pi05_rlt_rtc/config/runtime_config.py",
+      "sha256": "1a2b00bae1789062f6b92a26f9932de5bb79c4338be18d87f3db57b89e1a37a1",
+      "bytes": 7476
+    },
+    {
+      "path": "experiments/afixed_collect100_20261103/pi05_rlt_rtc/deployment/managed_eval.py",
+      "source": "experiments/afixed_collect100_20261103/pi05_rlt_rtc/deployment/managed_eval.py",
+      "sha256": "5e622138e94d1599c5707a2e3e6148ef773e833dc803355ce615c01f92ca2789",
+      "bytes": 9510
+    },
+    {
+      "path": "experiments/afixed_collect100_20261103/scripts/import_round10_evaluations.py",
+      "source": "experiments/afixed_collect100_20261103/scripts/import_round10_evaluations.py",
+      "sha256": "ba6ffdc1d1cc0a6b03da52f10b0c8d1d34cccb5556a3f1de22bd79b59f5cfd9d",
+      "bytes": 2527
+    },
+    {
+      "path": "experiments/afixed_collect100_20261103/tests/test_collect100.py",
+      "source": "experiments/afixed_collect100_20261103/tests/test_collect100.py",
+      "sha256": "4511041106fb0092f3d7c37920288a5dd90ab4a85eb75364ed4d58a64d2d99d8",
+      "bytes": 3238
+    }
+  ]
+}
