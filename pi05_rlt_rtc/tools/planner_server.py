@@ -13,6 +13,9 @@ import json
 import dataclasses
 import threading
 import hmac
+import time
+import os
+import gc
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import numpy as np
@@ -47,8 +50,26 @@ class PlannerService:
         self.env_action_dim = env_action_dim
         self.lock = threading.Lock()
         self.metadata = metadata or {"protocol": 1, "mock": bool(getattr(backend, "is_mock", True))}
+        self.profile = os.environ.get('PI05_PROFILE_PLANNER') == '1'
+        self.gc_seconds = 0.
+        self.gc_started = None
+        if self.profile:
+            gc.callbacks.append(self._gc_callback)
+
+    def _gc_callback(self, phase, info):
+        if phase == 'start':
+            self.gc_started = time.perf_counter()
+        elif self.gc_started is not None:
+            self.gc_seconds += time.perf_counter()-self.gc_started
+            self.gc_started = None
+
+    def close(self):
+        if self.profile and self._gc_callback in gc.callbacks:
+            gc.callbacks.remove(self._gc_callback)
 
     def handle(self, payload: dict) -> dict:
+        started = time.perf_counter()
+        gc_before = self.gc_seconds
         request = _request_from_json(payload["request"], self.contract)
         obs = _observation_from_json(payload["observation"])
         pending = np.asarray(payload["pending_prefix"], dtype=np.float32)
@@ -62,6 +83,7 @@ class PlannerService:
         if not self.lock.acquire(blocking=False):
             raise ContractError("planner busy; requests are not queued behind stale inference")
         try:
+            dispatched = time.perf_counter()
             if self.executor is None:
                 result = self.backend.plan(request, obs, pending, prev)
             else:
@@ -69,7 +91,15 @@ class PlannerService:
         finally:
             self.lock.release()
         result.validate(self.contract)
-        return {**plan_result_to_json(result), "identity": request_identity(request)}
+        response = {**plan_result_to_json(result), "identity": request_identity(request)}
+        if self.profile:
+            response['timing'] = {'service_ms': (time.perf_counter()-started)*1000,
+                'dispatch_to_result_ms': (time.perf_counter()-dispatched)*1000,
+                'gc_pause_ms': (self.gc_seconds-gc_before)*1000,
+                'feature_components_s': getattr(self.backend, 'last_feature_timings', {})}
+            if response['timing']['service_ms'] > 250:
+                print(json.dumps({'slow_planner_request': request.request_id, **response['timing']}), flush=True)
+        return response
 
 
 def _request_from_json(data: dict, contract) -> PlanRequest:
@@ -187,3 +217,4 @@ def serve(service: PlannerService, *, host: str, port: int, shutdown_after: int 
         server.serve_forever()
     finally:
         server.server_close()
+        service.close()

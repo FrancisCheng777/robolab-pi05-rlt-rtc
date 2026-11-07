@@ -110,3 +110,41 @@ def test_bounded_reference_honors_calibration_and_joint_limits():
 def test_reference_lead_cannot_exceed_accepted_bound(limit):
     with pytest.raises(ValueError, match='reference lead'):
         ControlOwner(Bridge(), None, joint_command_mode='bounded_reference', reference_lead_rad=limit)
+
+
+def test_home_opens_stationary_gripper_then_waits_for_hold_before_arm_motion():
+    b=Bridge();b.q[:]=.2
+    b.hold=lambda state:None
+    calls=[]
+    life=SimpleNamespace(phase='standby',held=lambda s:True,
+                         config={'open_gripper_after_home':True})
+    life._start_home=lambda state,dest:(calls.append('home'),setattr(life,'phase','homing'))
+    def settle(state,dest):life.phase='settling'
+    life._settle=settle
+    life.tick=lambda keys:None
+    owner=ControlOwner(b,life)
+    owner.home()
+    assert life.phase=='opening_gripper'
+    np.testing.assert_allclose(life.gripper_open_q,b.q)
+    assert calls==[] and not owner.ready(b.state())
+    owner.tick()
+    assert calls==[]
+    life.phase='settling'
+    owner.tick()
+    assert calls==[]  # arm must not start while the gripper/arm hold is pending
+    life.phase='standby'
+    owner.tick()
+    assert calls==['home']
+    assert life.config['open_gripper_after_home'] is False
+
+
+def test_operator_hold_cancels_pending_home_during_opening():
+    b=Bridge();b.hold=lambda state:None
+    calls=[]
+    life=SimpleNamespace(phase='standby',held=lambda s:True,config={})
+    life._start_home=lambda *a:calls.append('home')
+    life._settle=lambda *a:setattr(life,'phase','settling')
+    life.tick=lambda keys:None
+    owner=ControlOwner(b,life);owner.home();owner.hold()
+    life.phase='standby';owner.tick()
+    assert calls==[] and owner.ready(b.state())

@@ -176,6 +176,13 @@ def load_planner(cfg):
     model = get_model(OmegaConf.create(model_cfg)).to(device).eval().requires_grad_(False)
     if cfg.raw["model"].get("compile_suffix", False):
         model.run_suffix = torch.compile(model.run_suffix, mode="reduce-overhead", fullgraph=True)
+    vision_graph = None
+    if cfg.raw["model"].get("vision_cuda_graph", False):
+        from .prefix_cuda_graph import FrozenPrefixGraph
+        if not str(device).startswith("cuda"):
+            raise ContractError("vision_cuda_graph requires CUDA")
+        vision_graph = FrozenPrefixGraph(model.img.forward)
+        model.img.forward = vision_graph
     service = RLinfFeatureReferenceService(model=model, contract=cfg.contract, codec=codec,
         rtc_dispatcher=RTCDispatcher(num_steps=cfg.num_steps), feature_version_id=feature_id,
         norm_stats_sha256=codec.norm_stats.sha256, planning_state_version=PLANNING_STATE_VERSION)
@@ -201,9 +208,15 @@ def load_planner(cfg):
     metadata = {"protocol": 1, "mock": False, "policy_kind": cfg.raw["policy"]["kind"], "feature_version_id": feature_id,
                 "policy_version_id": policy_id, "norm_stats_sha256": codec.norm_stats.sha256,
                 "runtime_contract": cfg.wire_contract(), "fingerprint": fingerprint}
-    if cfg.raw["model"].get("compile_suffix", False):
+    if cfg.raw["model"].get("compile_suffix", False) or vision_graph is not None:
         print(f'Startup 4/4: warming compiled inference ({time.monotonic()-started:.1f}s elapsed).', flush=True)
         _warm_compiled_service(service, cfg, stats)
         metadata["compiled_inference_warmed"] = True
+    if vision_graph is not None:
+        if not vision_graph.validated:
+            raise ContractError("vision CUDA graph was not validated during startup")
+        metadata["execution_acceleration"] = {"vision_cuda_graph": True,
+            "initial_output_bitwise_verified": True}
+        print("Frozen vision CUDA graph ready; exact-output check passed.", flush=True)
     print(f'Model ready ({time.monotonic()-started:.1f}s total). Reuse this process to avoid reloading.', flush=True)
     return planner, metadata
