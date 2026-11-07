@@ -80,9 +80,14 @@ class CheckpointingTest(unittest.TestCase):
             path = Path(tmp) / "full_weights.pt"
             torch.save(checked.state_dict(), path)
             restored = tiny_model()
-            restored.load_state_dict(torch.load(path, weights_only=True), strict=True)
+            from rlinf.models.embodiment.openpi.checkpoint import load_full_weights
+            load_full_weights(restored, path, expect_rlt=True)
             for n, p in checked.state_dict().items():
                 torch.testing.assert_close(p, restored.state_dict()[n], rtol=0, atol=0)
+            torch.save({n: p for n, p in checked.state_dict().items()
+                        if not n.startswith("rlt_module.")}, path)
+            with self.assertRaisesRegex(ValueError, "no rlt_module"):
+                load_full_weights(restored, path, expect_rlt=True)
 
 
 if __name__ == "__main__":

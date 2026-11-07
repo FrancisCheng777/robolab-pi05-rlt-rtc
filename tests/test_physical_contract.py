@@ -18,6 +18,18 @@ def test_default_runtime_matches_the_real_demonstration_contract():
     assert cfg.raw["franka"]["cameras"]["kwargs"]["wrist_model"] == "D405"
 
 
+def test_execution_adapter_changes_are_bound_to_runtime_contract():
+    import dataclasses
+    cfg = load_runtime_config('configs/runtime_franka.yaml')
+    modified = dataclasses.replace(cfg, raw={**cfg.raw, 'franka': {
+        **cfg.raw['franka'], 'joint_command_mode':'bounded_reference', 'reference_lead_rad':.03}})
+    assert modified.wire_contract() != cfg.wire_contract()
+    assert modified.wire_contract()['joint_execution'] == {'mode':'bounded_reference', 'reference_lead_rad':.03}
+    from pi05_rlt_rtc.adapters.franka import FrankaEnvAdapter
+    with pytest.raises(ContractError, match='persistent control owner'):
+        FrankaEnvAdapter(modified)  # fail before opening hardware; no silent fallback
+
+
 def test_wrong_named_hardware_contract_cannot_be_silently_accepted(tmp_path):
     cfg = load_runtime_config("configs/runtime_franka.yaml")
     raw = json.loads((cfg.path.parent / cfg.raw["franka"]["bridge_config"]).read_text())

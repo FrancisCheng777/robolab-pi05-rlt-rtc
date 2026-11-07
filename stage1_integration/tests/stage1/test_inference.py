@@ -48,6 +48,11 @@ class NumericalInferenceTest(unittest.TestCase):
             first.validate(contract, expected_batch=1)
             np.testing.assert_allclose(first.reference_env_full, second.reference_env_full, atol=1e-6)
             self.assertTrue(np.isfinite(first.z_rl).all())
+        # Trace the complete cached suffix and its input-gradient path. The
+        # eager compiler backend checks graph compatibility without CUDA.
+        model.run_suffix = torch.compile(model.run_suffix, backend='eager', fullgraph=True)
+        compiled = service.extract(request, obs)
+        np.testing.assert_allclose(compiled.reference_env_full, second.reference_env_full, atol=1e-6)
         self.assertTrue(all(p.grad is None and not p.requires_grad for p in model.parameters()))
         loss = evaluate_batches(model, [batch()], max_batches=1)
         self.assertTrue(np.isfinite(loss['flow_mse_physical8']))

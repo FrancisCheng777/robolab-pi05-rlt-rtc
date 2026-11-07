@@ -104,6 +104,24 @@ class RemotePlanner:
             value = result.get(name)
             if value is not None:
                 setattr(out, name, np.asarray(value, np.float32))
+        state = result.get('planning_state')
+        if state is not None:
+            from pi05_rlt_rtc.learning.planning_state import PlanningState, PlanningStateSpec
+            from pi05_rlt_rtc.contracts.observation import EnvIDs
+            state = dict(state)
+            state['spec'] = PlanningStateSpec(**state['spec'])
+            state['ids'] = EnvIDs(**state['ids'])
+            for key in ('z_rl', 'proprio', 'pending_prefix', 'pending_mask', 'prev_plan_tail',
+                        'prev_plan_tail_mask', 'last_command', 'reference_full', 'time_features'):
+                state[key] = np.asarray(state[key], bool if key.endswith('mask') else np.float32)
+            out.planning_state = PlanningState(**state)
+            ps = out.planning_state
+            if (any(getattr(ps.ids, k) != getattr(request, k) for k in dataclasses.asdict(ps.ids))
+                    or ps.capture_tick != request.capture_tick or ps.plan_id is not None
+                    or ps.norm_stats_sha256 != self.metadata['norm_stats_sha256']
+                    or ps.spec.horizon != self.cfg.contract.horizon
+                    or ps.spec.chunk != self.cfg.contract.chunk or ps.batch_size != 1):
+                raise ContractError('remote planning-state identity/spec mismatch')
         out.validate(self.cfg.contract)
         if np.any(np.abs(out.submitted) > 1) or np.any(np.abs(out.reference_env_full) > 1):
             raise ContractError("remote planner returned commands outside [-1,1]")

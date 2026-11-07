@@ -10,6 +10,7 @@ controller tick (the controller does not call this synchronously).
 from __future__ import annotations
 
 import json
+import dataclasses
 import threading
 import hmac
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -20,11 +21,12 @@ from pi05_rlt_rtc.contracts.observation import ObservationSnapshot
 from pi05_rlt_rtc.contracts.plan import PlanRequest, PrevPlanContext
 from pi05_rlt_rtc.runtime.scheduler import PlanResult
 from pi05_rlt_rtc.contracts.errors import ContractError
-from pi05_rlt_rtc.deployment.rpc import decode_image, request_identity
+from pi05_rlt_rtc.deployment.rpc import decode_image, request_identity, json_value
 
 
 def plan_result_to_json(result: PlanResult) -> dict:
     return {
+        "planning_state": None if result.planning_state is None else dataclasses.asdict(result.planning_state),
         "submitted": np.asarray(result.submitted).tolist(),
         "reference_env_full": np.asarray(result.reference_env_full).tolist(),
         "source": result.source,
@@ -38,7 +40,8 @@ def plan_result_to_json(result: PlanResult) -> dict:
 
 
 class PlannerService:
-    def __init__(self, backend, contract, *, env_action_dim: int = 8, metadata=None) -> None:
+    def __init__(self, backend, contract, *, env_action_dim: int = 8, metadata=None, executor=None) -> None:
+        self.executor = executor
         self.backend = backend
         self.contract = contract
         self.env_action_dim = env_action_dim
@@ -59,7 +62,10 @@ class PlannerService:
         if not self.lock.acquire(blocking=False):
             raise ContractError("planner busy; requests are not queued behind stale inference")
         try:
-            result = self.backend.plan(request, obs, pending, prev)
+            if self.executor is None:
+                result = self.backend.plan(request, obs, pending, prev)
+            else:
+                result = self.executor.submit(self.backend.plan, request, obs, pending, prev).result()
         finally:
             self.lock.release()
         result.validate(self.contract)
@@ -156,7 +162,7 @@ def make_handler(service: PlannerService, *, shutdown_after: int | None = None, 
             except Exception as exc:  # noqa: BLE001 - the service must report errors
                 response = {"error": f"{type(exc).__name__}: {exc}"}
                 status = 500
-            body = json.dumps(response, allow_nan=False).encode("utf-8")
+            body = json.dumps(response, default=json_value, allow_nan=False).encode("utf-8")
             self.send_response(status)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))

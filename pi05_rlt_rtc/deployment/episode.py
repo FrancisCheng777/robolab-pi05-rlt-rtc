@@ -13,9 +13,11 @@ class EpisodeSignals:
     def poll(self, keys, tick):
         if self.outcome is not None:
             return
-        for key in keys:
-            if key in ('q','x'):
-                self.outcome, self.reason = 'aborted', 'operator_quit' if key=='q' else 'operator_abort'
+        keys = list(keys)
+        urgent = next((k for k in ('q', 'x', 'e') if k in keys), None)
+        for key in ([urgent] if urgent else keys):
+            if key in ('q','x','e'):
+                self.outcome, self.reason = 'aborted', {'q':'operator_quit','x':'operator_abort','e':'operator_home'}[key]
             elif key == 'b' and self.critical_start_tick is None:
                 self.critical_start_tick = tick
             elif key in ('a','c'):
@@ -31,5 +33,5 @@ class EpisodeSignals:
                 self.outcome,self.reason='failure','approach_timeout'
         if self.outcome:
             self.terminal_tick=tick-1 if tick else None
-            if not tick:
+            if not tick and self.reason not in ('operator_quit', 'operator_abort', 'operator_home'):
                 self.outcome,self.reason='aborted','no_executed_action'

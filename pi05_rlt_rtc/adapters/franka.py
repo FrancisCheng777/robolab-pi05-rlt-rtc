@@ -122,6 +122,8 @@ class FrankaEnvAdapter:
     def __init__(self, cfg, *, transport=None, cameras=None):
         self.cfg = cfg
         self.settings = cfg.raw["franka"]
+        if self.settings.get('joint_command_mode', 'measured_delta') != 'measured_delta':
+            raise ContractError('bounded_reference requires the persistent control owner: use runtime session')
         for name in ("rpc_timeout_s", "max_state_age_s", "max_camera_age_s", "max_camera_skew_s"):
             value = self.settings.get(name)
             if not isinstance(value, (float, int)) or not np.isfinite(value) or value <= 0:

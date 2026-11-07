@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sys
+import time
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -83,10 +84,43 @@ def build_model_config(cfg, checkpoint, stats):
             "openpi": {**architecture, "task": "eval", "config_name": "pi05_rlt_panda_robotiq_joint",
                        "action_horizon": cfg.contract.horizon, "action_chunk": cfg.contract.horizon,
                        "action_env_dim": 8, "model_action_dim": 32, "num_steps": cfg.num_steps,
-                       "num_images_in_input": 1, "use_rlt": True, "rlt_alpha": 1., "rtc_enabled": False, "torch_compile": False}}
+                       "num_images_in_input": 1, "use_rlt": True, "rlt_alpha": 1., "rtc_enabled": False,
+                       "torch_compile": cfg.raw["model"].get("compile_kernels", False)}}
+
+
+def _warm_compiled_service(service, cfg, stats):
+    """Compile both sampling and input-gradient paths before opening hardware.
+
+    These artificial observations only warm the compiler; they are not a
+    model-quality or hardware test. Keep the same shapes as physical inference.
+    """
+    import torch
+    from pi05_rlt_rtc import SCHEMA_VERSION
+    from pi05_rlt_rtc.contracts.observation import ObservationSnapshot
+    from pi05_rlt_rtc.contracts.plan import PlanRequest, PrevPlanContext
+    norm = json.loads(Path(stats).read_text())["norm_stats"]["state"]
+    state = (np.asarray(norm["q01"], np.float32) + np.asarray(norm["q99"], np.float32)) / 2
+    previous = PrevPlanContext.empty()
+    print("Warming compiled sampling and full-VJP input gradients (no hardware commands).", flush=True)
+    for index in range(3):
+        tick = index * cfg.contract.chunk
+        observation = ObservationSnapshot("compile-warmup", "compile-warmup", tick,
+            state, {"wrist": np.zeros((224, 224, 3), np.uint8)}, {"wrist": True}, cfg.raw["prompt"])
+        request = PlanRequest(index - 1, "compile-warmup", "compile-warmup", 1, tick,
+            tick + cfg.contract.delay, 1, "compile-warmup", service.feature_version_id,
+            SCHEMA_VERSION, PLANNING_STATE_VERSION, previous, index, cfg.rtc_mode, cfg.num_steps)
+        result = service.extract(request, observation)
+        tail = result.reference_env_full[0, cfg.contract.chunk:].copy()
+        previous = PrevPlanContext(tail, np.ones(len(tail), bool), tick, index,
+                                   service.feature_version_id)
+    if str(cfg.raw["model"].get("device", "cuda:0")).startswith("cuda"):
+        torch.cuda.synchronize()
+    print("Compiled inference warmup complete.", flush=True)
 
 
 def load_planner(cfg):
+    started = time.monotonic()
+    print('Startup 1/4: validating model assets and runtime.', flush=True)
     from pi05_rlt_rtc.deployment.planner import FeaturePlanner
     from pi05_rlt_rtc.learning.planning_state import PlanningStateSpec
     from pi05_rlt_rtc.rtc.dispatcher import RTCDispatcher
@@ -118,6 +152,7 @@ def load_planner(cfg):
     if str(device).startswith("cuda") and not torch.cuda.is_available():
         raise EnvironmentNotReadyError("CUDA is unavailable on this model host")
     model_cfg = build_model_config(cfg, checkpoint, stats)
+    print(f'Startup 2/4: verifying checkpoint fingerprint ({time.monotonic()-started:.1f}s elapsed).', flush=True)
     fingerprint = {"single_camera_profile_sha256": file_sha256(Path(__file__).parents[1] / "data/profile.py"),
                    "feature_adapter_sha256": file_sha256(Path(__file__).parents[1] / "adapters/rlinf_feature.py"),
                    "tokenizer_implementation_sha256": file_sha256(Path(__file__).parents[1] / "adapters/tokenizer.py"),
@@ -125,6 +160,7 @@ def load_planner(cfg):
                    "source": {key: assets["source"].get(key) for key in ("upstream_commit", "source_tree_sha256")},
                    "checkpoint_sha256": file_sha256(weights), "norm_stats_sha256": file_sha256(stats),
                    "rlinf_commit": PINNED_RLINF_COMMIT, "architecture": model_cfg["openpi"],
+                   "compile_suffix": cfg.raw["model"].get("compile_suffix", False),
                    "openpi_transforms_sha256": file_sha256(transforms.__file__),
                    "action_contract_id": cfg.action_contract_id,
                    "physical_transforms_sha256": file_sha256(Path(__file__).parents[1] / "adapters/panda_policy.py")}
@@ -136,7 +172,10 @@ def load_planner(cfg):
         raise ContractError("real inference requires both state and action normalization statistics")
     codec = UpstreamActionCodec(transforms.Normalize({"actions": data_cfg.norm_stats["actions"]},
                                 use_quantiles=data_cfg.use_quantile_norm), fingerprint["norm_stats_sha256"])
+    print(f'Startup 3/4: loading weights onto {device} ({time.monotonic()-started:.1f}s elapsed).', flush=True)
     model = get_model(OmegaConf.create(model_cfg)).to(device).eval().requires_grad_(False)
+    if cfg.raw["model"].get("compile_suffix", False):
+        model.run_suffix = torch.compile(model.run_suffix, mode="reduce-overhead", fullgraph=True)
     service = RLinfFeatureReferenceService(model=model, contract=cfg.contract, codec=codec,
         rtc_dispatcher=RTCDispatcher(num_steps=cfg.num_steps), feature_version_id=feature_id,
         norm_stats_sha256=codec.norm_stats.sha256, planning_state_version=PLANNING_STATE_VERSION)
@@ -162,4 +201,9 @@ def load_planner(cfg):
     metadata = {"protocol": 1, "mock": False, "policy_kind": cfg.raw["policy"]["kind"], "feature_version_id": feature_id,
                 "policy_version_id": policy_id, "norm_stats_sha256": codec.norm_stats.sha256,
                 "runtime_contract": cfg.wire_contract(), "fingerprint": fingerprint}
+    if cfg.raw["model"].get("compile_suffix", False):
+        print(f'Startup 4/4: warming compiled inference ({time.monotonic()-started:.1f}s elapsed).', flush=True)
+        _warm_compiled_service(service, cfg, stats)
+        metadata["compiled_inference_warmed"] = True
+    print(f'Model ready ({time.monotonic()-started:.1f}s total). Reuse this process to avoid reloading.', flush=True)
     return planner, metadata

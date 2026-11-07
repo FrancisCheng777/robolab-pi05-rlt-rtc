@@ -125,6 +125,8 @@ OPENPI_PYTHON=/path/to/openpi/python bash scripts/setup_runtime.sh
 
 4090 上配置 `configs/runtime_franka.yaml` 的 `model.checkpoint`、`model.norm_stats` 和 `session.control_python`。相对路径以 YAML 所在目录解析。`control_python` 只需 pinned 数采控制依赖，不加载 CUDA；应使用明确的绝对路径。当前机器人 IP、相机序列号来自既有本机配置，换机时显式修改。
 
+需要降低完整 `full_vjp` RTC 的推理延迟时，可在 `model` 下显式设置 `compile_kernels: true` 和 `compile_suffix: true`。后者编译动作 expert 的前向及输入梯度计算，并在打开机器人和相机之前，用人工构造的观测预热无历史动作与有历史动作两条路径；这些预热不是训练或效果评测。首次启动需要等待编译完成。完整权重使用内存映射加载，降低 32GB 主机上的加载峰值。是否满足实时要求仍须用完整 checkpoint、真实录制输入和墙钟控制器测量；根据测得的延迟设置 `horizon.delay`，保持训练动作频率与 `horizon.horizon` 不变，不自动降低 RTC 模式或去噪步数。
+
 ```bash
 # 不打开硬件的检查
 bash scripts/build_bridge.sh --mock
@@ -160,3 +162,5 @@ PI05_TEST_DATASET=/path/to/synthetic/export \
 ```
 
 源码与许可证见 [NOTICE](NOTICE.md)、[LICENSE](LICENSE)、[provenance](provenance)。`stage1_integration/pi05_demo` 中旧采集实现仅作历史/测试兼容；采集/export 主入口已指向 submodule。旧设计材料保留在 `docs/`，若与本 README 的 v2/单 D405 定义冲突，以本 README 和当前配置为准。
+
+For one-command Stage-1 teacher inference on the prepared 4090 host, model warmup reuse, and `e/r/x/q` controls, see [resident evaluation](docs/RESIDENT_EVAL.md).

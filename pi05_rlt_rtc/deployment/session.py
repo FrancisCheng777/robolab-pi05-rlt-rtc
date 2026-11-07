@@ -9,6 +9,9 @@ import sys
 import termios
 import time
 import tty
+import threading
+import signal
+from collections import deque
 from types import SimpleNamespace
 import uuid
 
@@ -25,16 +28,28 @@ def atomic_json(path, value):
 
 
 class TerminalKeys:
+    def __init__(self, emergency=None):
+        self.emergency = emergency
+        self.pending = deque()
+        self.lock = threading.Lock()
+        self.stopping = threading.Event()
+        self.error = None
+
     def __enter__(self):
         if not sys.stdin.isatty():
             raise ContractError('session requires an operator terminal')
         self.fd = sys.stdin.fileno()
         self.saved = termios.tcgetattr(self.fd)
         tty.setcbreak(self.fd)
+        attrs = termios.tcgetattr(self.fd)
+        attrs[0] &= ~(termios.IXON | termios.IXOFF)
+        termios.tcsetattr(self.fd, termios.TCSANOW, attrs)
         self.escape = False
+        self.thread = threading.Thread(target=self._listen, daemon=True, name='operator-keys')
+        self.thread.start()
         return self
 
-    def read(self):
+    def _read_terminal(self):
         if not select.select([self.fd], [], [], 0)[0]:
             return []
         data = os.read(self.fd, 256)
@@ -47,19 +62,59 @@ class TerminalKeys:
             elif self.escape:
                 if char.isalpha() or char == '~':
                     self.escape = False
-            elif char.lower() in 'rbachqx':
+            elif char.lower() in 'rbacheqx':
                 keys.append(char.lower())
         return keys
 
+    def _listen(self):
+        try:
+            while not self.stopping.wait(.01):
+                keys = self._read_terminal()
+                with self.lock:
+                    self.pending.extend(keys)
+                    if any(k in keys for k in ('e', 'x', 'q')) and self.emergency:
+                        self.emergency()
+        except BaseException as exc:
+            self.error = exc
+            if self.emergency:
+                with contextlib.suppress(Exception):
+                    self.emergency()
+
+    def read(self):
+        if self.error:
+            raise self.error
+        with self.lock:
+            keys = list(self.pending)
+            self.pending.clear()
+        return keys
+
     def __exit__(self, *_):
-        termios.tcsetattr(self.fd, termios.TCSADRAIN, self.saved)
+        self.stopping.set()
+        self.thread.join(timeout=3.)
+        termios.tcsetattr(self.fd, termios.TCSANOW, self.saved)
+
+
+def operator_start(keys, owner, *, home=False):
+    """A queued stop wins over a start; a subsequent stop interrupts the start."""
+    with keys.lock:
+        if keys.error:
+            raise keys.error
+        if any(k in keys.pending for k in ('q', 'x', 'e')):
+            return False
+        if not owner.rpc('status')['ready']:
+            return False
+        if home:
+            owner.rpc('home')
+        else:
+            owner.arm_episode()
+        return True
 
 
 def run_episode(cfg, backend, metadata, owner, cameras, keys, out, *, seed):
     from pi05_rlt_rtc.runtime.controller import WallClockController
     from pi05_rlt_rtc.runtime.queue import ActionQueue
     from pi05_rlt_rtc.runtime.recording import AsyncRequestRecorder
-    from .session_env import SessionEnv
+    from .session_env import SessionEnv, OperatorInterrupt
     from .rollout import save_rollout, annotate
     out = Path(out)
     out.mkdir(parents=True, exist_ok=False)
@@ -82,6 +137,9 @@ def run_episode(cfg, backend, metadata, owner, cameras, keys, out, *, seed):
     error = None
     try:
         report.update(controller.run(settings['max_approach_ticks']+settings['max_critical_ticks']+1).summary())
+    except OperatorInterrupt:
+        signals.poll(keys.read(), env._tick)
+        report['safety_stops'] = 0
     except BaseException as exc:
         error = exc
         report['error'] = f'{type(exc).__name__}: {exc}'
@@ -99,6 +157,10 @@ def run_episode(cfg, backend, metadata, owner, cameras, keys, out, *, seed):
             error = error or exc
             report['error'] = f'{type(exc).__name__}: {exc}'
         report['stop_request_acknowledged'] = env.stop_request_acknowledged
+        stop_events = [e for e in queue.ledger.events if e.get('event') in
+                       ('trial_stopped_wallclock', 'plan_rejected', 'deadline_miss', 'planner_error')]
+        if stop_events:
+            report['controller_stop_reason'] = stop_events[-1].get('reason', stop_events[-1]['event'])
         metadata['critical_start_tick'] = signals.critical_start_tick
         metadata['terminal_reason'] = signals.reason
         queue.ledger.write_jsonl(out/'ledger.jsonl')
@@ -107,6 +169,9 @@ def run_episode(cfg, backend, metadata, owner, cameras, keys, out, *, seed):
         save_rollout(out/'rollout.pt', events=controller.events, metadata=metadata,
                      report=report, contract=cfg.contract, trial_id=trial_id, hardware_commands=env.command_log)
     fault = error or any(report.get(k,0) for k in ('safety_stops','planner_errors','deadline_misses'))
+    if fault:
+        print('Controller stopped: '+json.dumps({key: report.get(key) for key in
+            ('ticks_run', 'controller_stop_reason', 'deadline_misses', 'underruns', 'planner_errors', 'error')}), flush=True)
     outcome = 'aborted' if fault or not env.stop_request_acknowledged else signals.outcome or 'aborted'
     annotate(SimpleNamespace(rollout=str(out/'rollout.pt'),out=str(out/'label'),
         outcome=outcome,annotator=metadata['annotator'], terminal_tick=signals.terminal_tick,
@@ -178,6 +243,12 @@ def _run_session(args):
         raise ContractError('--annotator is required')
     if args.mode == "train" and args.policy:
         raise ContractError("training resumes from session rounds; use --policy only for fixed-policy evaluation")
+    if getattr(args, 'planner_url', None) and (args.mode != 'eval' or cfg.raw['policy']['kind'] != 'teacher'):
+        raise ContractError('resident planner sessions currently support teacher eval only')
+    from .bridge_preflight import probe_bridge
+    probe_bridge(cfg.raw['franka']['socket'], json.loads(
+        cfg.asset(cfg.raw['franka']['bridge_config'], 'bridge config').read_text()))
+    print('Bridge connection verified. Loading model once; keep this session open for subsequent trials.', flush=True)
     root = Path(args.out).resolve()
     root.mkdir(parents=True,exist_ok=True)
     backend, metadata = make_backend(cfg,args)  # validate/load assets before opening devices
@@ -195,24 +266,44 @@ def _run_session(args):
     from .session_env import OwnerClient
     from pi05_rlt_rtc.adapters.cameras import create_cameras
     with contextlib.ExitStack() as stack:
-        keys = stack.enter_context(TerminalKeys())
         owner = OwnerClient(cfg)
         stack.callback(owner.close)
+        keys = stack.enter_context(TerminalKeys(emergency=owner.interrupt))
         cameras = create_cameras(cfg.raw['franka']['cameras'])
         stack.callback(cameras.close)
-        print('Held. r=start; b=critical; a=fail; c=success; h=home/open; x=abort; q=quit.',flush=True)
+        print('Held. r=start; b=critical; a=fail; c=success; e=stop/home/open; x=hold; q=quit.',flush=True)
+        pending_home = False
+        home_in_progress = False
         while True:
             commands = keys.read()
             if 'q' in commands:
                 break
-            if 'h' in commands:
-                if not owner.rpc('status')['ready']:
-                    print('Wait for confirmed hold before home.',flush=True)
-                    continue
-                owner.rpc('home')
-                print('Accepted home/open in progress; r is disabled until held.',flush=True)
-            elif 'r' in commands:
-                if not owner.rpc('status')['ready']:
+            if 'x' in commands:
+                pending_home = home_in_progress = False
+                owner.hold()
+                print('Held. e=home/open; r=next episode; q=quit.', flush=True)
+                continue
+            if 'e' in commands or 'h' in commands:
+                pending_home = True
+                if 'h' in commands:
+                    owner.interrupt()
+                print('Hold requested; returning home once hold is confirmed. x cancels, q exits.', flush=True)
+            if pending_home:
+                if operator_start(keys, owner, home=True):
+                    pending_home = False
+                    home_in_progress = True
+                    print('Returning to collection home/open; x=hold, q=quit.', flush=True)
+                time.sleep(.02)
+                continue
+            if home_in_progress:
+                if owner.rpc('status')['ready']:
+                    home_in_progress = False
+                    print('Home/open complete. r=next episode; q=quit.', flush=True)
+                # Never buffer r pressed while home is still underway.
+                time.sleep(.02)
+                continue
+            if 'r' in commands:
+                if not operator_start(keys, owner):
                     print('Wait for confirmed hold.',flush=True)
                     continue
                 number = len(list((root/'episodes').glob('*')))+1
@@ -220,13 +311,15 @@ def _run_session(args):
                     root/'episodes'/f'{number:06d}-{uuid.uuid4().hex[:8]}',seed=args.seed+number)
                 if signals.reason == 'operator_quit':
                     break
+                if signals.reason == 'operator_home':
+                    pending_home = True
                 if args.mode == 'train':
                     owner.wait_ready()
                     checkpoint = update_round(cfg,root,seed=args.seed,device=cfg.raw['model']['device'])
                     bind_policy(backend,metadata,checkpoint,cfg,mode=args.mode,exploration=args.exploration)
                     # Discard keys typed during updates; never buffer a motion request.
                     keys.read()
-                print('Held. h=explicit home/open; r=next episode; q=quit.',flush=True)
+                print('Held/home in progress. e=home/open; x=hold; r=next episode when ready; q=quit.',flush=True)
             time.sleep(.02)
     return 0
 
@@ -242,4 +335,11 @@ def run_session(args):
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as exc:
             raise ContractError('another process owns this session directory') from exc
-        return _run_session(args)
+        def terminate(signum, frame):
+            raise KeyboardInterrupt(f'session signal {signum}')
+        saved = {sig: signal.signal(sig, terminate) for sig in (signal.SIGHUP, signal.SIGTERM)}
+        try:
+            return _run_session(args)
+        finally:
+            for sig, handler in saved.items():
+                signal.signal(sig, handler)
