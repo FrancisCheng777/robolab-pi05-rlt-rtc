@@ -1,0 +1,11 @@
+{
+  "shadow_trigger_count": 1,
+  "policy_id": "queue-rlt:e3315c88621f07c836cdb0c62841a1764088619a674e9cd69077c681870a9481",
+  "center_m": [
+    0.5398986871506408,
+    0.01991078133284155,
+    0.07199556549902682
+  ],
+  "physical_execution_started": false,
+  "tests_passed": 64
+}
