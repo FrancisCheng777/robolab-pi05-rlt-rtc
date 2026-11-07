@@ -1,0 +1,26 @@
+{
+  "source_date": "2026-11-07",
+  "base_commit": "124e43cdd0b35ea856f326be4dc5136bc9c58f6a",
+  "status": "archived, not promoted or newly validated",
+  "description": "Exact local source overlay; some source directories are partial snapshots. Historical results are not fresh validation. Data, weights, generated binaries and caches are excluded. Apply overlay only after comparing with its original deployed base.",
+  "files": [
+    {
+      "path": "experiments/anchor_variants_20261104/pi05_rlt_rtc/deployment/actor_anchor.py",
+      "source": "experiments/anchor_variants_20261104/pi05_rlt_rtc/deployment/actor_anchor.py",
+      "sha256": "1db28a16c28119964db459505efab02f6c7d91411687d505a8bc68e2800458db",
+      "bytes": 1626
+    },
+    {
+      "path": "experiments/anchor_variants_20261104/pi05_rlt_rtc/deployment/training.py",
+      "source": "experiments/anchor_variants_20261104/pi05_rlt_rtc/deployment/training.py",
+      "sha256": "c01587b17864ef2a1493bf216cc0f4e5835c3054addc9e267791de55b43cb941",
+      "bytes": 15602
+    },
+    {
+      "path": "experiments/anchor_variants_20261104/tests/test_actor_anchor.py",
+      "source": "experiments/anchor_variants_20261104/tests/test_actor_anchor.py",
+      "sha256": "c5f9e23caa8cf34c92735e687781e5df52ea804b2820ba24217180344b44ab64",
+      "bytes": 4747
+    }
+  ]
+}
